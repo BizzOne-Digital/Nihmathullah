@@ -7,6 +7,7 @@ import {
 import { Service, type IService } from "@/models";
 import type { ServiceDetailPage, ServiceListing } from "@/types";
 import { RepositoryError, handleRepositoryError } from "./errors";
+import { isDatabaseUnavailable } from "./readiness";
 
 export type CreateServiceInput = {
   listing: ServiceListing;
@@ -56,6 +57,9 @@ export async function getServiceById(id: string): Promise<IService | null> {
 }
 
 export async function getPublishedServices(): Promise<IService[]> {
+  if (isDatabaseUnavailable()) {
+    return [];
+  }
   try {
     await connectDB();
     const services = await Service.find({
@@ -71,6 +75,9 @@ export async function getPublishedServices(): Promise<IService[]> {
 }
 
 export async function getServiceBySlug(slug: string): Promise<IService | null> {
+  if (isDatabaseUnavailable()) {
+    return null;
+  }
   try {
     await connectDB();
     const service = await Service.findOne({

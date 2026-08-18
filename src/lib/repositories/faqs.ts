@@ -2,8 +2,12 @@ import connectDB from "@/lib/db/connect";
 import { mapRepositoryDoc } from "./serialize";
 import { FAQ, type IFAQ } from "@/models";
 import { handleRepositoryError } from "./errors";
+import { isDatabaseUnavailable } from "./readiness";
 
 export async function getPublishedFaqs(): Promise<IFAQ[]> {
+  if (isDatabaseUnavailable()) {
+    return [];
+  }
   try {
     await connectDB();
     const faqs = await FAQ.find({ published: true })

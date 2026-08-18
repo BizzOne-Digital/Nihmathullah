@@ -5,6 +5,7 @@ import { Container } from "@/components/ui/Container";
 import { OptimizedImage } from "@/components/ui/OptimizedImage";
 import { JsonLd } from "@/components/ui/JsonLd";
 import { getPublishedPosts, getPostBySlug } from "@/lib/repositories/blog";
+import { resolveStaticParams } from "@/lib/db/build-time";
 import { generatePageMetadata } from "@/lib/seo/metadata";
 import { buildBreadcrumbSchema } from "@/lib/seo/structured-data";
 import { getBaseUrl } from "@/lib/utils";
@@ -15,8 +16,10 @@ type PageProps = {
 };
 
 export async function generateStaticParams() {
-  const posts = await getPublishedPosts();
-  return posts.map((post) => ({ slug: post.slug }));
+  return resolveStaticParams("blog posts", async () => {
+    const posts = await getPublishedPosts();
+    return posts.map((post) => ({ slug: post.slug }));
+  });
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {

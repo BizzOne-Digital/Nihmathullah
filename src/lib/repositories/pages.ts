@@ -8,6 +8,7 @@ import {
 import { Page, type IPage } from "@/models";
 import type { PageHero, PageSection, SeoFields } from "@/types";
 import { RepositoryError, handleRepositoryError } from "./errors";
+import { isDatabaseUnavailable } from "./readiness";
 
 export type UpdatePageInput = Partial<{
   title: string;
@@ -48,6 +49,9 @@ export async function getAdminPageBySlug(slug: string): Promise<IPage | null> {
 }
 
 export async function getPageBySlug(slug: string): Promise<IPage | null> {
+  if (isDatabaseUnavailable()) {
+    return null;
+  }
   try {
     await connectDB();
     let page = await Page.findOne({ slug, published: true }).lean();
@@ -68,6 +72,9 @@ export async function getPageBySlug(slug: string): Promise<IPage | null> {
 }
 
 export async function getPublishedPages(): Promise<IPage[]> {
+  if (isDatabaseUnavailable()) {
+    return [];
+  }
   try {
     await connectDB();
     const pages = await Page.find({ published: true })

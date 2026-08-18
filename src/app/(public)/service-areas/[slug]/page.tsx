@@ -12,6 +12,7 @@ import {
 import { getSiteSettings } from "@/lib/repositories/site-settings";
 import { generatePageMetadata } from "@/lib/seo/metadata";
 import { buildBreadcrumbSchema } from "@/lib/seo/structured-data";
+import { resolveStaticParams } from "@/lib/db/build-time";
 import { getBaseUrl } from "@/lib/utils";
 import { DEFAULT_SITE_SETTINGS, toSiteSettingsData } from "@/lib/site-settings";
 
@@ -20,8 +21,10 @@ type PageProps = {
 };
 
 export async function generateStaticParams() {
-  const areas = await getPublishedServiceAreas();
-  return areas.map((area) => ({ slug: area.slug }));
+  return resolveStaticParams("service areas", async () => {
+    const areas = await getPublishedServiceAreas();
+    return areas.map((area) => ({ slug: area.slug }));
+  });
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {

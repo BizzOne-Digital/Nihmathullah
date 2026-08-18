@@ -3,6 +3,7 @@ import { sanitizeMediaItem } from "@/lib/media/sanitize";
 import { mapRepositoryDoc } from "./serialize";
 import { Testimonial, type ITestimonial } from "@/models";
 import { handleRepositoryError } from "./errors";
+import { isDatabaseUnavailable } from "./readiness";
 
 function sanitizePublicTestimonial(testimonial: ITestimonial): ITestimonial {
   return {
@@ -11,7 +12,11 @@ function sanitizePublicTestimonial(testimonial: ITestimonial): ITestimonial {
   } as ITestimonial;
 }
 
-export async function getPublishedTestimonials(): Promise<ITestimonial[]> {  try {
+export async function getPublishedTestimonials(): Promise<ITestimonial[]> {
+  if (isDatabaseUnavailable()) {
+    return [];
+  }
+  try {
     await connectDB();
     const testimonials = await Testimonial.find({ published: true })
       .sort({ order: 1, createdAt: -1 })

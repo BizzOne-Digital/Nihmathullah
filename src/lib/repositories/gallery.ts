@@ -7,6 +7,7 @@ import { mapRepositoryDoc } from "./serialize";import {
   type IGalleryImage,
 } from "@/models";
 import { RepositoryError, handleRepositoryError } from "./errors";
+import { isDatabaseUnavailable } from "./readiness";
 
 export async function getPublishedCategories(): Promise<IGalleryCategory[]> {
   try {
@@ -21,6 +22,9 @@ export async function getPublishedCategories(): Promise<IGalleryCategory[]> {
 }
 
 export async function getPublishedImages(): Promise<IGalleryImage[]> {
+  if (isDatabaseUnavailable()) {
+    return [];
+  }
   try {
     await connectDB();
     const images = await GalleryImage.find({ published: true })

@@ -7,8 +7,12 @@ import {
 } from "@/models";
 import type { PricingSettingsData } from "@/types";
 import { handleRepositoryError } from "./errors";
+import { isDatabaseUnavailable } from "./readiness";
 
 export async function getPricingSettings(): Promise<IPricingSettings | null> {
+  if (isDatabaseUnavailable()) {
+    return null;
+  }
   try {
     await connectDB();
     const settings = await getOrCreatePricingSettings();

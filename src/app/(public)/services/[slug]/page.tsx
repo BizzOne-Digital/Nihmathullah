@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { ServiceDetailTemplate } from "@/components/services/ServiceDetailTemplate";
 import { JsonLd } from "@/components/ui/JsonLd";
 import { getPublishedServices, getServiceBySlug } from "@/lib/repositories/services";
+import { resolveStaticParams } from "@/lib/db/build-time";
 import { getSiteSettings } from "@/lib/repositories/site-settings";
 import { generateServiceMetadata } from "@/lib/seo/metadata";
 import { buildBreadcrumbSchema, buildServiceSchema } from "@/lib/seo/structured-data";
@@ -14,8 +15,10 @@ type PageProps = {
 };
 
 export async function generateStaticParams() {
-  const services = await getPublishedServices();
-  return services.map((service) => ({ slug: service.listing.slug }));
+  return resolveStaticParams("services", async () => {
+    const services = await getPublishedServices();
+    return services.map((service) => ({ slug: service.listing.slug }));
+  });
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {

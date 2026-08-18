@@ -7,8 +7,12 @@ import {
 } from "@/models";
 import type { SiteSettingsData } from "@/types";
 import { handleRepositoryError } from "./errors";
+import { isDatabaseUnavailable } from "./readiness";
 
 export async function getSiteSettings(): Promise<ISiteSettings | null> {
+  if (isDatabaseUnavailable()) {
+    return null;
+  }
   try {
     await connectDB();
     const settings = await getOrCreateSiteSettings();

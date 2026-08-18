@@ -7,6 +7,7 @@ import {
 import { mapRepositoryDoc } from "./serialize";
 import { BlogPost, type IBlogPost } from "@/models";
 import { handleRepositoryError } from "./errors";
+import { isDatabaseUnavailable } from "./readiness";
 
 function sanitizePublicPost(post: IBlogPost): IBlogPost {
   return {
@@ -18,6 +19,9 @@ function sanitizePublicPost(post: IBlogPost): IBlogPost {
 }
 
 export async function getPublishedPosts(): Promise<IBlogPost[]> {
+  if (isDatabaseUnavailable()) {
+    return [];
+  }
   try {
     await connectDB();
     const posts = await BlogPost.find({ published: true, draft: false })
@@ -30,6 +34,9 @@ export async function getPublishedPosts(): Promise<IBlogPost[]> {
 }
 
 export async function getPostBySlug(slug: string): Promise<IBlogPost | null> {
+  if (isDatabaseUnavailable()) {
+    return null;
+  }
   try {
     await connectDB();
     const post = await BlogPost.findOne({

@@ -27,6 +27,10 @@ function getMongoUri(): string {
   return uri;
 }
 
+export function isMongoConfigured(): boolean {
+  return Boolean(process.env.MONGODB_URI?.trim());
+}
+
 function resetCache(): void {
   cached.conn = null;
   cached.promise = null;

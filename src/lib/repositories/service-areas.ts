@@ -7,6 +7,7 @@ import {
 import { mapRepositoryDoc } from "./serialize";
 import { ServiceArea, type IServiceArea } from "@/models";
 import { handleRepositoryError } from "./errors";
+import { isDatabaseUnavailable } from "./readiness";
 
 function sanitizePublicServiceArea(area: IServiceArea): IServiceArea {
   return {
@@ -18,6 +19,9 @@ function sanitizePublicServiceArea(area: IServiceArea): IServiceArea {
 }
 
 export async function getPublishedServiceAreas(): Promise<IServiceArea[]> {
+  if (isDatabaseUnavailable()) {
+    return [];
+  }
   try {
     await connectDB();
     const areas = await ServiceArea.find({ published: true })
@@ -32,6 +36,9 @@ export async function getPublishedServiceAreas(): Promise<IServiceArea[]> {
 export async function getServiceAreaBySlug(
   slug: string
 ): Promise<IServiceArea | null> {
+  if (isDatabaseUnavailable()) {
+    return null;
+  }
   try {
     await connectDB();
     const area = await ServiceArea.findOne({ slug, published: true }).lean();

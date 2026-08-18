@@ -3,6 +3,7 @@ import { sanitizeMediaItem, sanitizeMediaList } from "@/lib/media/sanitize";
 import { mapRepositoryDoc } from "./serialize";
 import { Vehicle, type IVehicle } from "@/models";
 import { handleRepositoryError } from "./errors";
+import { isDatabaseUnavailable } from "./readiness";
 
 function sanitizePublicVehicle(vehicle: IVehicle): IVehicle {
   return {
@@ -12,7 +13,11 @@ function sanitizePublicVehicle(vehicle: IVehicle): IVehicle {
   } as IVehicle;
 }
 
-export async function getPublishedVehicles(): Promise<IVehicle[]> {  try {
+export async function getPublishedVehicles(): Promise<IVehicle[]> {
+  if (isDatabaseUnavailable()) {
+    return [];
+  }
+  try {
     await connectDB();
     const vehicles = await Vehicle.find({ published: true })
       .sort({ order: 1, displayName: 1 })
