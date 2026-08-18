@@ -2,6 +2,7 @@ import { Container } from "@/components/ui/Container";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { OptimizedImage } from "@/components/ui/OptimizedImage";
 import { RevealOnScroll } from "@/components/animation/RevealOnScroll";
+import { cn } from "@/lib/utils";
 import type { PageSection } from "@/types";
 import { sectionWrapperClass, isDarkTheme } from "./theme";
 
@@ -13,6 +14,13 @@ interface PassengerTypeItem {
 
 interface PassengerTypesSectionProps {
   section: PageSection;
+}
+
+function passengerGridClass(count: number): string {
+  if (count <= 1) return "max-w-sm grid-cols-1";
+  if (count === 2) return "max-w-2xl grid-cols-1 sm:grid-cols-2";
+  if (count === 3) return "max-w-4xl grid-cols-1 md:grid-cols-3";
+  return "max-w-6xl grid-cols-1 sm:grid-cols-2 lg:grid-cols-4";
 }
 
 export function PassengerTypesSection({ section }: PassengerTypesSectionProps) {
@@ -32,7 +40,7 @@ export function PassengerTypesSection({ section }: PassengerTypesSectionProps) {
           />
         </RevealOnScroll>
 
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        <div className={cn("mx-auto grid gap-8 gap-y-10", passengerGridClass(items.length))}>
           {items.map((item, i) => (
             <RevealOnScroll key={i} delay={i * 0.06}>
               <div className="text-center">

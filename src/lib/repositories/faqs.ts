@@ -20,6 +20,9 @@ export async function getPublishedFaqs(): Promise<IFAQ[]> {
 }
 
 export async function getFaqsByCategory(category: string): Promise<IFAQ[]> {
+  if (isDatabaseUnavailable()) {
+    return [];
+  }
   try {
     await connectDB();
     const faqs = await FAQ.find({ published: true, category })

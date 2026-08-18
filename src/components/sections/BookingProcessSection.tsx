@@ -2,6 +2,7 @@ import { Container } from "@/components/ui/Container";
 import { Button } from "@/components/ui/Button";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { RevealOnScroll } from "@/components/animation/RevealOnScroll";
+import { cn } from "@/lib/utils";
 import type { PageSection } from "@/types";
 import { sectionWrapperClass, isDarkTheme } from "./theme";
 
@@ -35,14 +36,35 @@ export function BookingProcessSection({ section }: BookingProcessSectionProps) {
         <div className="mx-auto max-w-3xl space-y-6">
           {items.map((item, i) => (
             <RevealOnScroll key={i} delay={i * 0.08}>
-              <div className="flex gap-4 rounded-sm border border-antique-gold/10 bg-charcoal/20 p-6">
-                <span className="text-2xl font-display text-signature-gold">
+              <div
+                className={cn(
+                  "flex items-start gap-4 rounded-sm border p-6",
+                  dark
+                    ? "border-antique-gold/10 bg-charcoal/20"
+                    : "border-obsidian/15 bg-obsidian/[0.06]"
+                )}
+              >
+                <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-signature-gold/15 text-xl font-display text-signature-gold">
                   {item.step ?? i + 1}
                 </span>
-                <div>
-                  <h3 className="font-display text-lg text-ivory">{item.title}</h3>
+                <div className="min-w-0 flex-1">
+                  <h3
+                    className={cn(
+                      "font-display text-lg",
+                      dark ? "text-ivory" : "text-obsidian"
+                    )}
+                  >
+                    {item.title}
+                  </h3>
                   {item.description && (
-                    <p className="mt-1 text-sm text-muted-silver">{item.description}</p>
+                    <p
+                      className={cn(
+                        "mt-1 text-sm leading-relaxed",
+                        dark ? "text-muted-silver" : "text-obsidian/75"
+                      )}
+                    >
+                      {item.description}
+                    </p>
                   )}
                 </div>
               </div>

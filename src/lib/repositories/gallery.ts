@@ -10,6 +10,9 @@ import { RepositoryError, handleRepositoryError } from "./errors";
 import { isDatabaseUnavailable } from "./readiness";
 
 export async function getPublishedCategories(): Promise<IGalleryCategory[]> {
+  if (isDatabaseUnavailable()) {
+    return [];
+  }
   try {
     await connectDB();
     const categories = await GalleryCategory.find({ published: true })
@@ -40,6 +43,9 @@ export async function getPublishedImages(): Promise<IGalleryImage[]> {
 export async function getImagesByCategory(
   categorySlug: string
 ): Promise<IGalleryImage[]> {
+  if (isDatabaseUnavailable()) {
+    return [];
+  }
   try {
     await connectDB();
     const category = await GalleryCategory.findOne({

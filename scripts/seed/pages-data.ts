@@ -159,7 +159,7 @@ export function buildPages(): PageSeed[] {
         section("home-testimonials", "testimonials", "Testimonials", 9, {
           eyebrow: "Testimonials",
           heading: "Client Experiences",
-          body: "Published testimonials appear here once verified and approved in admin.",
+          body: "What Capital Region clients say about SierraLink private transportation.",
           visible: true,
           theme: "black",
         }),
@@ -481,7 +481,7 @@ export function buildPages(): PageSeed[] {
       hero: {
         eyebrow: "Testimonials",
         heading: "Client Experiences",
-        subheading: "Verified testimonials appear here once published in admin. No placeholder reviews are displayed.",
+        subheading: "Real feedback from clients who rely on SierraLink for airport, executive, local, and long-distance travel.",
         backgroundImage: img(DEMO.pageTestimonials, "Elegant testimonial page background"),
       },
       seo: {
@@ -491,7 +491,7 @@ export function buildPages(): PageSeed[] {
       },
       sections: [
         section("testimonials-intro", "richText", "Introduction", 0, {
-          body: "We publish testimonials only after they are verified and approved. If no testimonials are published yet, this section remains intentionally empty.",
+          body: "SierraLink is trusted for professional private transportation throughout Albany and the Capital Region. Read what clients have shared about their experiences.",
           primaryMedia: img(DEMO.testimonials2, "Client experience editorial image"),
           theme: "ivory",
         }),
@@ -658,20 +658,7 @@ export function buildPages(): PageSeed[] {
           primaryMedia: img(DEMO.contact3, "Capital Region service area map concept"),
           theme: "ivory",
         }),
-        section("contact-form", "richText", "Inquiry Form", 2, {
-          heading: "Send an Inquiry",
-          body: "Use the inquiry form to ask questions or share trip details. All submissions are saved for review.",
-          primaryMedia: img(DEMO.contact4, "Inquiry form on laptop"),
-          theme: "black",
-        }),
-        section("contact-visual", "splitMedia", "Contact Visual", 3, {
-          heading: "We Respond Promptly",
-          body: "For urgent transportation needs, calling is the fastest way to reach us.",
-          primaryMedia: img(DEMO.contact5, "Customer calling for transportation"),
-          media: [img(DEMO.contact1, "Contact hero alternate")],
-          theme: "gold",
-        }),
-        section("contact-cta", "cta", "Contact CTA", 4, {
+        section("contact-cta", "cta", "Contact CTA", 2, {
           heading: "Ready to Travel?",
           primaryMedia: img(DEMO.contact3, "Contact CTA background"),
           primaryCta: cta("Book a Ride", "/booking"),
