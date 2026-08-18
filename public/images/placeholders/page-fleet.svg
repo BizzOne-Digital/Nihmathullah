@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1000" viewBox="0 0 1600 1000" role="img" aria-label="Fleet">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#060807"/>
+      <stop offset="45%" stop-color="#121413"/>
+      <stop offset="100%" stop-color="#0C0E0D"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#AC9461"/>
+      <stop offset="50%" stop-color="#D0AF6F"/>
+      <stop offset="100%" stop-color="#E2C179"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="50%" cy="42%" r="45%">
+      <stop offset="0%" stop-color="#D0AF6F" stop-opacity="0.12"/>
+      <stop offset="100%" stop-color="#060807" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="1600" height="1000" fill="url(#bg)"/>
+  <rect width="1600" height="1000" fill="url(#glow)"/>
+  <path d="M120 860 C420 780 680 820 980 760 C1180 720 1360 740 1480 700" fill="none" stroke="url(#gold)" stroke-width="1.5" opacity="0.35" stroke-linecap="round"/>
+  <path d="M80 900 C380 830 640 870 940 810 C1140 770 1320 790 1520 750" fill="none" stroke="url(#gold)" stroke-width="1" opacity="0.2" stroke-linecap="round"/>
+  <rect x="120" y="120" width="80" height="80" fill="none" stroke="url(#gold)" stroke-width="1.5" opacity="0.25"/>
+  <rect x="1400" y="800" width="80" height="80" fill="none" stroke="url(#gold)" stroke-width="1.5" opacity="0.25"/>
+  <rect x="700" y="405" width="200" height="58" rx="16" fill="none" stroke="url(#gold)" stroke-width="2.5"/><circle cx="748" cy="475" r="17" fill="none" stroke="url(#gold)" stroke-width="2.5"/><circle cx="852" cy="475" r="17" fill="none" stroke="url(#gold)" stroke-width="2.5"/>
+  <text x="800" y="560" text-anchor="middle" fill="#F5EFE5" font-family="Georgia, 'Times New Roman', serif" font-size="28">Fleet</text>
+  <text x="800" y="600" text-anchor="middle" fill="#A7AAA7" font-family="Arial, Helvetica, sans-serif" font-size="13" letter-spacing="0.28em">SIERRALINK EXECUTIVE TRANSPORTATION</text>
+</svg>

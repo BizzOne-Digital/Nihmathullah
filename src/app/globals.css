@@ -1,0 +1,235 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --color-obsidian: #060807;
+  --color-rich-black: #0c0e0d;
+  --color-charcoal: #181a19;
+  --color-deep-bronze: #706246;
+  --color-antique-gold: #ac9461;
+  --color-signature-gold: #d0af6f;
+  --color-champagne: #e2c179;
+  --color-ivory: #f5efe5;
+  --color-white: #ffffff;
+  --color-muted-silver: #a7aaa7;
+
+  --header-height: 5rem;
+  --mobile-action-bar-height: 3.75rem;
+  --section-padding-y: 5rem;
+  --container-max: 80rem;
+}
+
+@media (max-width: 767px) {
+  :root {
+    --section-padding-y: 3rem;
+    --header-height: 4.5rem;
+  }
+}
+
+@layer base {
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    width: 100%;
+    max-width: 100%;
+    overflow-x: clip;
+  }
+
+  html.lenis,
+  html.lenis body {
+    height: auto;
+  }
+
+  html.lenis {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: clip;
+  }
+
+  .lenis.lenis-smooth {
+    scroll-behavior: auto !important;
+  }
+
+  .lenis.lenis-smooth [data-lenis-prevent] {
+    overscroll-behavior: contain;
+  }
+
+  .lenis.lenis-stopped {
+    overflow: hidden;
+  }
+
+  body {
+    @apply bg-obsidian text-ivory font-sans antialiased;
+    width: 100%;
+    max-width: 100%;
+    overflow-x: clip;
+  }
+
+  ::selection {
+    @apply bg-signature-gold/30 text-ivory;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply font-display;
+  }
+
+  a {
+    @apply transition-colors duration-200;
+  }
+
+  img,
+  video {
+    max-width: 100%;
+    height: auto;
+  }
+
+  :focus-visible {
+    @apply outline-2 outline-offset-2 outline-signature-gold;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  html.lenis,
+  html.lenis body {
+    height: auto;
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-obsidian);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-deep-bronze);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-antique-gold);
+}
+
+@layer utilities {
+  .text-gold-gradient {
+    @apply bg-gold-gradient bg-clip-text text-transparent;
+  }
+
+  .bg-gold-gradient-solid {
+    background: linear-gradient(
+      135deg,
+      var(--color-antique-gold) 0%,
+      var(--color-signature-gold) 50%,
+      var(--color-champagne) 100%
+    );
+  }
+
+  .gold-line {
+    @apply h-px bg-gradient-to-r from-transparent via-signature-gold to-transparent;
+  }
+
+  .gold-line-vertical {
+    @apply w-px bg-gradient-to-b from-transparent via-signature-gold to-transparent;
+  }
+
+  .gold-border {
+    border-image: linear-gradient(
+        135deg,
+        var(--color-antique-gold),
+        var(--color-signature-gold),
+        var(--color-champagne)
+      )
+      1;
+  }
+
+  .gold-sweep {
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      var(--color-signature-gold) 50%,
+      transparent 100%
+    );
+    background-size: 200% 100%;
+  }
+
+  .section-theme-black {
+    @apply bg-obsidian text-ivory;
+  }
+
+  .section-theme-charcoal {
+    @apply bg-charcoal text-ivory;
+  }
+
+  .section-theme-gold {
+    @apply bg-antique-gold text-obsidian;
+  }
+
+  .section-theme-ivory {
+    @apply bg-ivory text-obsidian;
+  }
+
+  .section-theme-white {
+    @apply bg-white text-obsidian;
+  }
+
+  .pb-mobile-bar {
+    padding-bottom: calc(var(--mobile-action-bar-height) + env(safe-area-inset-bottom, 0px));
+  }
+
+  @media (min-width: 768px) {
+    .pb-mobile-bar {
+      padding-bottom: 0;
+    }
+  }
+
+  @media (min-width: 768px) and (pointer: fine) {
+    body.custom-cursor-active,
+    body.custom-cursor-active a,
+    body.custom-cursor-active button {
+      cursor: none;
+    }
+  }
+}
+
+@layer components {
+  .container-site {
+    @apply mx-auto w-full min-w-0 max-w-[var(--container-max)] px-4 sm:px-6 lg:px-8;
+  }
+
+  .road-line {
+    @apply relative;
+  }
+
+  .road-line::after {
+    content: "";
+    @apply absolute left-0 right-0 bottom-0 h-px gold-sweep;
+    opacity: 0.6;
+  }
+}
