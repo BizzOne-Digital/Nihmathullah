@@ -1,5 +1,6 @@
 import { revalidatePath } from "next/cache";
 import { createBooking } from "@/lib/repositories/bookings";
+import { notifyAdminNewBooking } from "@/lib/email/notifications";
 import { bookingFormSchema } from "@/lib/validation/booking";
 import { checkRateLimit, rateLimitResponse } from "@/lib/rate-limit";
 import { getClientIp } from "@/lib/api/request";
@@ -77,6 +78,19 @@ export async function POST(request: Request) {
     });
 
     revalidatePath("/admin/bookings");
+
+    void notifyAdminNewBooking({
+      reference: booking.reference,
+      mode: data.mode,
+      contactName: data.contactName,
+      contactEmail: data.contactEmail,
+      contactPhone: data.contactPhone,
+      rideType: data.rideType,
+      pickupAddress: data.pickupAddress,
+      destinationAddress: data.destinationAddress,
+      pickupDate: data.pickupDate,
+      pickupTime: data.pickupTime,
+    });
 
     return jsonResponse({
       success: true,

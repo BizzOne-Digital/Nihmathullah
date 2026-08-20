@@ -1,5 +1,6 @@
 import { contactFormSchema } from "@/lib/validation/booking";
 import { createInquiry } from "@/lib/repositories/inquiries";
+import { notifyAdminNewInquiry } from "@/lib/email/notifications";
 import { checkRateLimit, rateLimitResponse } from "@/lib/rate-limit";
 import { getClientIp } from "@/lib/api/request";
 import {
@@ -46,6 +47,14 @@ export async function POST(request: Request) {
       inquiryType: "general",
       message: data.message,
       consent: data.consent,
+    });
+
+    void notifyAdminNewInquiry({
+      name: data.name,
+      email: data.email,
+      phone: data.phone,
+      inquiryType: "general",
+      message: data.message,
     });
 
     return jsonResponse({

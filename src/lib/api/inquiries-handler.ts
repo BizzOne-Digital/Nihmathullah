@@ -1,5 +1,6 @@
 import { inquiryFormSchema } from "@/lib/validation/booking";
 import { createInquiry } from "@/lib/repositories/inquiries";
+import { notifyAdminNewInquiry } from "@/lib/email/notifications";
 import { checkRateLimit, rateLimitResponse } from "@/lib/rate-limit";
 import { getClientIp } from "@/lib/api/request";
 import {
@@ -49,6 +50,17 @@ export async function handleInquirySubmission(request: Request): Promise<Respons
       preferredDateTime: data.preferredDateTime || undefined,
       message: data.message,
       consent: data.consent,
+    });
+
+    void notifyAdminNewInquiry({
+      name: data.name,
+      email: data.email,
+      phone: data.phone,
+      inquiryType: data.inquiryType,
+      pickup: data.pickup,
+      destination: data.destination,
+      preferredDateTime: data.preferredDateTime,
+      message: data.message,
     });
 
     return jsonResponse({

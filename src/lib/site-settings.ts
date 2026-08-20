@@ -46,6 +46,8 @@ export const DEFAULT_SITE_SETTINGS: SiteSettingsData = {
   primaryEmail: "info@sierralinkexecutivetransportation.com",
   primaryPhoneDisplay: "(518) 290-0675",
   primaryPhoneLink: "tel:+15182900675",
+  alternatePhoneDisplay: "(914) 483-2266",
+  alternatePhoneLink: "tel:+19144832266",
   serviceAreaText:
     "Saratoga Springs, Clifton Park, Latham, Albany, Schenectady, and surrounding Capital Region areas",
   aboutStatement:

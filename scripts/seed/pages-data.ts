@@ -159,7 +159,7 @@ export function buildPages(): PageSeed[] {
         section("home-testimonials", "testimonials", "Testimonials", 9, {
           eyebrow: "Testimonials",
           heading: "Client Experiences",
-          body: "What Capital Region clients say about SierraLink private transportation.",
+          body: "Verified testimonials appear here once you publish approved reviews in admin.",
           visible: true,
           theme: "black",
         }),
@@ -481,7 +481,7 @@ export function buildPages(): PageSeed[] {
       hero: {
         eyebrow: "Testimonials",
         heading: "Client Experiences",
-        subheading: "Real feedback from clients who rely on SierraLink for airport, executive, local, and long-distance travel.",
+        subheading: "Verified testimonials appear here once published and approved in admin.",
         backgroundImage: img(DEMO.pageTestimonials, "Elegant testimonial page background"),
       },
       seo: {
@@ -491,7 +491,7 @@ export function buildPages(): PageSeed[] {
       },
       sections: [
         section("testimonials-intro", "richText", "Introduction", 0, {
-          body: "SierraLink is trusted for professional private transportation throughout Albany and the Capital Region. Read what clients have shared about their experiences.",
+          body: "We publish testimonials only after they are verified and approved. Add genuine client reviews in the admin portal when ready.",
           primaryMedia: img(DEMO.testimonials2, "Client experience editorial image"),
           theme: "ivory",
         }),

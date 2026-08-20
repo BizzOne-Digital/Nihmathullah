@@ -18,7 +18,6 @@ import { loadEnv, log, img, ABOUT_STATEMENT, PRICING_STATEMENT, SERVICE_AREA_TEX
 import { SERVICES } from "./seed/services-data";
 import { FAQS } from "./seed/faq-data";
 import { BLOG_POSTS } from "./seed/blog-data";
-import { TESTIMONIALS } from "./seed/testimonials-data";
 import { buildPages, sanitizePageSeed } from "./seed/pages-data";
 import {
   sanitizeContentBlocks,
@@ -704,35 +703,10 @@ async function seedFaqs(serviceIds: Map<string, mongoose.Types.ObjectId>): Promi
   log("FAQs", "  ✓ complete");
 }
 
-async function seedTestimonials(
-  serviceIds: Map<string, mongoose.Types.ObjectId>
-): Promise<void> {
-  log("Testimonials", `upserting ${TESTIMONIALS.length} testimonials`);
-
-  for (const testimonial of TESTIMONIALS) {
-    const serviceId = testimonial.serviceSlug
-      ? serviceIds.get(testimonial.serviceSlug)
-      : undefined;
-
-    await Testimonial.findOneAndUpdate(
-      { customerName: testimonial.customerName, quote: testimonial.quote },
-      {
-        $set: {
-          role: testimonial.role,
-          company: testimonial.company,
-          quote: testimonial.quote,
-          rating: testimonial.rating,
-          featured: testimonial.featured,
-          published: true,
-          order: testimonial.order,
-          ...(serviceId ? { serviceId } : {}),
-        },
-      },
-      { upsert: true, new: true }
-    );
-  }
-
-  log("Testimonials", "  ✓ complete");
+async function seedTestimonials(): Promise<void> {
+  log("Testimonials", "removing unpublished demo reviews — only admin-approved reviews are shown");
+  const removed = await Testimonial.deleteMany({});
+  log("Testimonials", `  ✓ removed ${removed.deletedCount ?? 0} records (add approved reviews in admin)`);
 }
 
 async function seedBlogPosts(): Promise<void> {
@@ -882,7 +856,7 @@ async function main(): Promise<void> {
     await seedGallery();
     await seedFaqs(serviceIds);
     await seedBlogPosts();
-    await seedTestimonials(serviceIds);
+    await seedTestimonials();
     await seedPages();
     await seedVehicles(serviceIds);
 
@@ -895,7 +869,7 @@ async function main(): Promise<void> {
     console.log("  Gallery: 5 categories (placeholder SVGs via sections; no photo gallery seeded)");
     console.log(`  FAQs: ${FAQS.length} across all categories`);
     console.log(`  Blog posts: ${BLOG_POSTS.length} published`);
-    console.log(`  Testimonials: ${TESTIMONIALS.length} published`);
+    console.log("  Testimonials: none seeded (admin-approved only)");
     console.log(`  Pages: ${buildPages().length} with complete sections`);
     console.log("  Vehicles: 3 unpublished illustrative records");
     console.log("\n  Branded SVG placeholders: public/images/placeholders/ (npm run generate:placeholders)");
