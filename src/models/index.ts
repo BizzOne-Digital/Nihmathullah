@@ -47,6 +47,7 @@ export {
   getOrCreateSiteSettings,
 } from "./SiteSettings";
 export { AuditEvent, type IAuditEvent } from "./AuditEvent";
+export { StoredUpload, type IStoredUpload } from "./StoredUpload";
 
 export {
   MediaItemSchema,

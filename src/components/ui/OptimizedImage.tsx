@@ -4,6 +4,7 @@ import { useState } from "react";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
 import { isBlockedMediaUrl } from "@/lib/media/sanitize";
+import { resolveMediaUrl } from "@/lib/uploads/resolve-media-url";
 
 interface OptimizedImageProps {
   src: string;
@@ -34,6 +35,9 @@ export function OptimizedImage({
     return null;
   }
 
+  const resolvedSrc = resolveMediaUrl(src);
+  const isApiUpload = resolvedSrc.startsWith("/api/uploads/");
+
   const objectClass =
     objectFit === "cover"
       ? "object-cover"
@@ -44,12 +48,13 @@ export function OptimizedImage({
   if (fill) {
     return (
       <Image
-        src={src}
+        src={resolvedSrc}
         alt={alt}
         fill
         sizes={sizes || "100vw"}
         priority={priority}
         className={cn(objectClass, className)}
+        unoptimized={isApiUpload}
         onError={() => setError(true)}
       />
     );
@@ -57,13 +62,14 @@ export function OptimizedImage({
 
   return (
     <Image
-      src={src}
+      src={resolvedSrc}
       alt={alt}
       width={width || 800}
       height={height || 600}
       sizes={sizes}
       priority={priority}
       className={cn(objectClass, className)}
+      unoptimized={isApiUpload}
       onError={() => setError(true)}
     />
   );

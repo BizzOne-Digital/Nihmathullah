@@ -72,6 +72,38 @@ export const UPLOAD_DIRS = [
 
 export type UploadDir = (typeof UPLOAD_DIRS)[number];
 
+/** MongoDB-backed upload folders (serverless-safe). */
+export const STORED_UPLOAD_FOLDERS = [
+  "products",
+  "gallery",
+  "pages",
+  "misc",
+] as const;
+
+export type StoredUploadFolder = (typeof STORED_UPLOAD_FOLDERS)[number];
+
+export const STORED_UPLOAD_MIME_TYPES = [
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+  "image/gif",
+] as const;
+
+export const STORED_MAX_UPLOAD_SIZE = 8 * 1024 * 1024; // 8MB
+
+/** Maps legacy admin upload directories to MongoDB stored folders. */
+export const UPLOAD_DIR_TO_STORED_FOLDER: Record<UploadDir, StoredUploadFolder> =
+  {
+    pages: "pages",
+    gallery: "gallery",
+    fleet: "products",
+    services: "products",
+    "service-areas": "misc",
+    testimonials: "misc",
+    blogs: "misc",
+    settings: "misc",
+  };
+
 export const ALLOWED_IMAGE_TYPES = [
   "image/jpeg",
   "image/png",

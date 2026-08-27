@@ -1,4 +1,4 @@
-import { deleteUpload } from "@/lib/uploads/handler";
+import { deleteUploadByUrl } from "@/lib/uploads/delete";
 import { uploadDeleteSchema } from "@/lib/validation/admin";
 import { isAuthResponse, requireApiAdmin } from "@/lib/api/auth";
 import {
@@ -7,6 +7,8 @@ import {
   jsonResponse,
   zodErrorResponse,
 } from "@/lib/api/response";
+
+export const runtime = "nodejs";
 
 export async function POST(request: Request) {
   const auth = await requireApiAdmin();
@@ -20,7 +22,7 @@ export async function POST(request: Request) {
       return zodErrorResponse(parsed.error);
     }
 
-    const result = await deleteUpload(parsed.data.url);
+    const result = await deleteUploadByUrl(parsed.data.url);
 
     if (!result.success) {
       return jsonError(result.error ?? "Failed to delete upload", 400);
