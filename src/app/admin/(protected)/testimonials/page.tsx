@@ -15,6 +15,7 @@ import {
   adminInputClass,
   adminLabelClass,
 } from "@/components/admin/admin-styles";
+import { toMutationPayload } from "@/lib/admin/mutation-payload";
 
 interface Testimonial {
   _id: string;
@@ -52,7 +53,7 @@ export default function TestimonialsPage() {
       const res = await fetch("/api/admin/testimonials", {
         method: isNew ? "POST" : "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(editing),
+        body: JSON.stringify(toMutationPayload(editing)),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Save failed");
@@ -119,12 +120,28 @@ export default function TestimonialsPage() {
               key: "actions",
               header: "",
               render: (r) => (
-                <button
-                  className="text-signature-gold hover:underline"
-                  onClick={() => setEditing(r)}
-                >
-                  Edit
-                </button>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    className="text-signature-gold hover:underline"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setEditing(r);
+                    }}
+                  >
+                    Edit
+                  </button>
+                  <button
+                    type="button"
+                    className="text-red-400 hover:underline"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setDeleteId(r._id);
+                    }}
+                  >
+                    Delete
+                  </button>
+                </div>
               ),
             },
           ]}
@@ -199,10 +216,19 @@ export default function TestimonialsPage() {
         variant="danger"
         onConfirm={async () => {
           if (!deleteId) return;
-          await fetch(`/api/admin/testimonials?id=${deleteId}`, { method: "DELETE" });
-          success("Deleted");
-          load();
-          setDeleteId(null);
+          try {
+            const res = await fetch(`/api/admin/testimonials?id=${deleteId}`, {
+              method: "DELETE",
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || "Delete failed");
+            success("Deleted");
+            load();
+          } catch (err) {
+            error(err instanceof Error ? err.message : "Delete failed");
+          } finally {
+            setDeleteId(null);
+          }
         }}
         onCancel={() => setDeleteId(null)}
       />

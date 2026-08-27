@@ -15,6 +15,7 @@ import {
   adminInputClass,
   adminLabelClass,
 } from "@/components/admin/admin-styles";
+import { toMutationPayload } from "@/lib/admin/mutation-payload";
 
 interface Vehicle {
   _id: string;
@@ -50,7 +51,7 @@ export default function FleetPage() {
       const res = await fetch("/api/admin/fleet", {
         method: isNew ? "POST" : "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(editing),
+        body: JSON.stringify(toMutationPayload(editing)),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Save failed");
@@ -163,6 +164,23 @@ export default function FleetPage() {
                   ))}
                 </select>
               </div>
+              <div>
+                <label className={adminLabelClass}>Passengers</label>
+                <input
+                  type="number"
+                  min={1}
+                  className={adminInputClass}
+                  value={editing.passengerCapacity ?? ""}
+                  onChange={(e) =>
+                    setEditing({
+                      ...editing,
+                      passengerCapacity: e.target.value
+                        ? Number(e.target.value)
+                        : undefined,
+                    })
+                  }
+                />
+              </div>
               <MediaUpload
                 directory="fleet"
                 value={editing.primaryImage}
@@ -199,10 +217,17 @@ export default function FleetPage() {
         confirmLabel="Delete"
         onConfirm={async () => {
           if (!deleteId) return;
-          await fetch(`/api/admin/fleet?id=${deleteId}`, { method: "DELETE" });
-          success("Deleted");
-          load();
-          setDeleteId(null);
+          try {
+            const res = await fetch(`/api/admin/fleet?id=${deleteId}`, { method: "DELETE" });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || "Delete failed");
+            success("Deleted");
+            load();
+          } catch (err) {
+            error(err instanceof Error ? err.message : "Delete failed");
+          } finally {
+            setDeleteId(null);
+          }
         }}
         onCancel={() => setDeleteId(null)}
       />

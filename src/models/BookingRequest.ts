@@ -15,9 +15,10 @@ export interface IBookingAuditEntry {
 
 export interface IBookingTripDetails {
   rideType: string;
-  tripStructure: "one-way" | "round-trip";
+  tripStructure: "one-way" | "round-trip" | "hourly";
   pickupAddress: string;
   destinationAddress: string;
+  durationHours?: number;
   stops?: string[];
   pickupDate: string;
   pickupTime: string;
@@ -76,10 +77,11 @@ const BookingTripDetailsSchema = new Schema<IBookingTripDetails>(
     tripStructure: {
       type: String,
       required: true,
-      enum: ["one-way", "round-trip"],
+      enum: ["one-way", "round-trip", "hourly"],
     },
     pickupAddress: { type: String, required: true },
-    destinationAddress: { type: String, required: true },
+    destinationAddress: { type: String, default: "" },
+    durationHours: { type: Number, min: 1, max: 24 },
     stops: { type: [String], default: undefined },
     pickupDate: { type: String, required: true },
     pickupTime: { type: String, required: true },

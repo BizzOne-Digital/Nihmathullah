@@ -46,8 +46,12 @@ export async function POST(request: Request) {
       tripDetails: {
         rideType: data.rideType,
         tripStructure: data.tripStructure,
+        durationHours: data.durationHours,
         pickupAddress: data.pickupAddress,
-        destinationAddress: data.destinationAddress,
+        destinationAddress:
+          data.tripStructure === "hourly"
+            ? "As directed"
+            : data.destinationAddress || "",
         stops: data.stops,
         pickupDate: data.pickupDate,
         pickupTime: data.pickupTime,
@@ -87,7 +91,10 @@ export async function POST(request: Request) {
       contactPhone: data.contactPhone,
       rideType: data.rideType,
       pickupAddress: data.pickupAddress,
-      destinationAddress: data.destinationAddress,
+      destinationAddress:
+        data.tripStructure === "hourly"
+          ? `As directed (${data.durationHours || 3} hours)`
+          : data.destinationAddress || "",
       pickupDate: data.pickupDate,
       pickupTime: data.pickupTime,
     });

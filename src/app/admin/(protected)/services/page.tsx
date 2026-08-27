@@ -7,6 +7,7 @@ import { Plus } from "lucide-react";
 import { AdminPage } from "@/components/admin/AdminShell";
 import { DataTable } from "@/components/admin/DataTable";
 import { StatusBadge } from "@/components/admin/StatusBadge";
+import { ConfirmDialog } from "@/components/admin/ConfirmDialog";
 import { useToast } from "@/components/admin/Toast";
 import { adminButtonPrimary, adminCardClass } from "@/components/admin/admin-styles";
 
@@ -23,11 +24,13 @@ interface ServiceRow {
 
 export default function AdminServicesPage() {
   const router = useRouter();
-  const { error } = useToast();
+  const { success, error } = useToast();
   const [services, setServices] = useState<ServiceRow[]>([]);
   const [loading, setLoading] = useState(true);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
 
-  useEffect(() => {
+  const load = () => {
+    setLoading(true);
     fetch("/api/admin/services")
       .then((r) => r.json())
       .then((data) => {
@@ -36,6 +39,10 @@ export default function AdminServicesPage() {
       })
       .catch(() => error("Failed to load services"))
       .finally(() => setLoading(false));
+  };
+
+  useEffect(() => {
+    load();
   }, [error]);
 
   return (
@@ -55,8 +62,8 @@ export default function AdminServicesPage() {
           <DataTable
             data={services}
             searchKeys={["listing"]}
+            emptyMessage="No services yet. Add your first service."
             getRowId={(r) => r._id}
-            onRowClick={(r) => router.push(`/admin/services/${r._id}`)}
             columns={[
               {
                 key: "title",
@@ -92,10 +99,57 @@ export default function AdminServicesPage() {
                 header: "Order",
                 render: (r) => r.listing.order,
               },
+              {
+                key: "actions",
+                header: "",
+                render: (r) => (
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      className="text-signature-gold hover:underline"
+                      onClick={() => router.push(`/admin/services/${r._id}`)}
+                    >
+                      Edit
+                    </button>
+                    <button
+                      type="button"
+                      className="text-red-400 hover:underline"
+                      onClick={() => setDeleteId(r._id)}
+                    >
+                      Delete
+                    </button>
+                  </div>
+                ),
+              },
             ]}
           />
         )}
       </div>
+
+      <ConfirmDialog
+        open={!!deleteId}
+        title="Delete service"
+        message="This permanently removes the service and its detail page content."
+        variant="danger"
+        confirmLabel="Delete"
+        onConfirm={async () => {
+          if (!deleteId) return;
+          try {
+            const res = await fetch(`/api/admin/services/${deleteId}`, {
+              method: "DELETE",
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || "Delete failed");
+            success("Service deleted");
+            load();
+          } catch (err) {
+            error(err instanceof Error ? err.message : "Delete failed");
+          } finally {
+            setDeleteId(null);
+          }
+        }}
+        onCancel={() => setDeleteId(null)}
+      />
     </AdminPage>
   );
 }

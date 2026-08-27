@@ -11,7 +11,6 @@ import {
   CreditCard,
   DollarSign,
   FileCheck,
-  FileText,
   HelpCircle,
   Image,
   LayoutDashboard,
@@ -38,7 +37,6 @@ type NavEntry = NavItem | NavSection;
 
 const navItems: NavEntry[] = [
   { label: "Dashboard", href: "/admin", icon: LayoutDashboard },
-  { label: "Pages", href: "/admin/pages", icon: FileText },
   { label: "Services", href: "/admin/services", icon: Briefcase },
   { label: "Service Areas", href: "/admin/service-areas", icon: MapPin },
   { label: "Fleet", href: "/admin/fleet", icon: Car },
@@ -102,7 +100,7 @@ export function AdminSidebar({ collapsed, onToggle }: AdminSidebarProps) {
 
       <nav className="flex-1 overflow-y-auto py-4">
         <ul className="space-y-0.5 px-2">
-          {navItems.map((entry, i) => {
+          {navItems.map((entry) => {
             if (!isNavItem(entry)) {
               return (
                 !collapsed && (

@@ -2,32 +2,18 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
-import { FormEvent, useState } from "react";
 import {
   ArrowRight,
   Building2,
-  Calendar,
-  Car,
   Landmark,
-  MapPin,
   Phone,
   Plane,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/Button";
+import { BookingWidget } from "@/components/booking/BookingWidget";
 import type { SiteSettingsData } from "@/types";
 
 export const HOME_HERO_BACKGROUND = "/uploads/pages/home-hero-bg.png";
-
-const TRIP_TYPES = [
-  { value: "airport", label: "Airport Transfer" },
-  { value: "local", label: "Local Ride" },
-  { value: "long-distance", label: "Long Distance" },
-  { value: "executive", label: "Executive / Corporate" },
-  { value: "corporate", label: "Corporate" },
-  { value: "private-car", label: "Private Car Service" },
-];
 
 interface HomeCinematicHeroProps {
   settings: SiteSettingsData;
@@ -40,21 +26,6 @@ export function HomeCinematicHero({
   headline = "Reliable Airport, Executive, Local & Long-Distance Transportation",
   subheading = "Professional private car service for airport transfers, business travel, local rides and long-distance trips.",
 }: HomeCinematicHeroProps) {
-  const router = useRouter();
-  const [rideType, setRideType] = useState("airport");
-  const [pickup, setPickup] = useState("");
-  const [destination, setDestination] = useState("");
-  const [pickupDate, setPickupDate] = useState("");
-
-  const handleBookingSubmit = (e: FormEvent) => {
-    e.preventDefault();
-    const params = new URLSearchParams({ mode: "booking", rideType });
-    if (pickup) params.set("pickup", pickup);
-    if (destination) params.set("destination", destination);
-    if (pickupDate) params.set("date", pickupDate);
-    router.push(`/booking?${params.toString()}`);
-  };
-
   return (
     <section className="relative min-h-[100svh] w-full max-w-full overflow-hidden bg-obsidian">
       <div className="absolute inset-0">
@@ -193,115 +164,8 @@ export function HomeCinematicHero({
           </div>
         </div>
 
-        <form
-          onSubmit={handleBookingSubmit}
-          className="relative z-20 w-full min-w-0 max-w-full rounded-md border border-antique-gold/20 bg-charcoal/75 p-3 shadow-2xl shadow-black/40 backdrop-blur-md sm:p-4 md:p-5"
-        >
-          <div className="mb-4 flex items-center gap-2">
-            <Calendar className="h-5 w-5 text-signature-gold" />
-            <span className="text-sm font-semibold uppercase tracking-[0.2em] text-ivory">
-              Plan Your Ride
-            </span>
-          </div>
-
-          <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-[1fr_1fr_0.9fr_0.9fr_auto] lg:items-end">
-            <HeroField label="Pickup" id="hero-pickup">
-              <div className="relative">
-                <MapPin className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-deep-bronze" />
-                <input
-                  id="hero-pickup"
-                  type="text"
-                  value={pickup}
-                  onChange={(e) => setPickup(e.target.value)}
-                  placeholder="Enter pickup location"
-                  className={heroInputClass}
-                />
-              </div>
-            </HeroField>
-
-            <HeroField label="Destination" id="hero-destination">
-              <div className="relative">
-                <MapPin className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-deep-bronze" />
-                <input
-                  id="hero-destination"
-                  type="text"
-                  value={destination}
-                  onChange={(e) => setDestination(e.target.value)}
-                  placeholder="Enter destination"
-                  className={heroInputClass}
-                />
-              </div>
-            </HeroField>
-
-            <HeroField label="Date" id="hero-date">
-              <div className="relative">
-                <Calendar className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-deep-bronze" />
-                <input
-                  id="hero-date"
-                  type="date"
-                  value={pickupDate}
-                  onChange={(e) => setPickupDate(e.target.value)}
-                  className={heroInputClass}
-                />
-              </div>
-            </HeroField>
-
-            <HeroField label="Ride Type" id="hero-ride-type">
-              <div className="relative">
-                <Car className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-deep-bronze" />
-                <select
-                  id="hero-ride-type"
-                  value={rideType}
-                  onChange={(e) => setRideType(e.target.value)}
-                  className={cn(heroInputClass, "appearance-none pr-8")}
-                >
-                  {TRIP_TYPES.map((type) => (
-                    <option key={type.value} value={type.value}>
-                      {type.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </HeroField>
-
-            <Button
-              type="submit"
-              variant="gold"
-              size="md"
-              magnetic
-              className="h-[46px] w-full max-w-full px-4 text-xs uppercase tracking-wider sm:px-6 sm:text-sm lg:w-auto lg:min-w-[150px] lg:whitespace-nowrap"
-            >
-              Start Booking
-              <ArrowRight className="h-4 w-4" />
-            </Button>
-          </div>
-        </form>
+        <BookingWidget className="relative z-20" mode="quote" submitLabel="Get a Quote" />
       </div>
     </section>
-  );
-}
-
-const heroInputClass =
-  "h-[46px] w-full rounded-sm border border-antique-gold/15 bg-ivory/95 pl-10 pr-3 text-sm text-obsidian placeholder:text-obsidian/45 focus:outline-none focus:ring-2 focus:ring-signature-gold/40";
-
-function HeroField({
-  label,
-  id,
-  children,
-}: {
-  label: string;
-  id: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <div>
-      <label
-        htmlFor={id}
-        className="mb-1.5 block text-[10px] font-semibold uppercase tracking-[0.18em] text-signature-gold"
-      >
-        {label}
-      </label>
-      {children}
-    </div>
   );
 }

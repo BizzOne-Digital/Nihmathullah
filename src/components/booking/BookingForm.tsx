@@ -15,11 +15,9 @@ const RIDE_TYPES = [
   { value: "long-distance", label: "Long Distance" },
   { value: "executive", label: "Executive" },
   { value: "corporate", label: "Corporate" },
+  { value: "private-car", label: "Private Car Service" },
   { value: "hourly", label: "Hourly / As Directed" },
-  { value: "other", label: "Other" },
 ];
-
-const STEPS = ["Trip Details", "Passengers", "Contact", "Review"];
 
 interface BookingFormProps {
   defaultMode?: "booking" | "quote";
@@ -36,11 +34,12 @@ function getTimezone(): string {
 }
 
 const defaultFormValues: BookingFormInput = {
-  mode: "booking",
+  mode: "quote",
   rideType: "airport",
   tripStructure: "one-way",
   pickupAddress: "",
   destinationAddress: "",
+  durationHours: 3,
   stops: [],
   pickupDate: "",
   pickupTime: "",
@@ -67,11 +66,10 @@ const defaultFormValues: BookingFormInput = {
 };
 
 export function BookingForm({
-  defaultMode = "booking",
+  defaultMode = "quote",
   initialValues,
   confirmationText,
 }: BookingFormProps) {
-  const [step, setStep] = useState(0);
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [errorMessage, setErrorMessage] = useState("");
   const [reference, setReference] = useState("");
@@ -91,7 +89,7 @@ export function BookingForm({
     register,
     handleSubmit,
     watch,
-    trigger,
+    setValue,
     reset,
     formState: { errors },
   } = form;
@@ -103,14 +101,14 @@ export function BookingForm({
   useEffect(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
-      if (saved) {
+      if (saved && !initialValues?.pickupAddress) {
         const parsed = JSON.parse(saved) as Partial<BookingFormInput>;
         reset({ ...defaultFormValues, mode: defaultMode, ...parsed });
       }
     } catch {
       /* ignore */
     }
-  }, [defaultMode, reset]);
+  }, [defaultMode, initialValues?.pickupAddress, reset]);
 
   useEffect(() => {
     const subscription = watch((values) => {
@@ -123,23 +121,14 @@ export function BookingForm({
     return () => subscription.unsubscribe();
   }, [watch]);
 
+  useEffect(() => {
+    if (tripStructure === "hourly") {
+      setValue("rideType", "hourly");
+    }
+  }, [tripStructure, setValue]);
+
   const inputClass =
     "w-full rounded-sm border border-antique-gold/20 bg-charcoal px-4 py-3 text-sm text-ivory placeholder:text-muted-silver focus:outline-none focus:ring-2 focus:ring-signature-gold/50";
-
-  const stepFields: Record<number, (keyof BookingFormInput)[]> = {
-    0: ["rideType", "tripStructure", "pickupAddress", "destinationAddress", "pickupDate", "pickupTime", "returnDate", "returnTime"],
-    1: ["passengerCount", "luggageCount"],
-    2: ["contactName", "contactEmail", "contactPhone", "preferredContact"],
-    3: ["consent"],
-  };
-
-  const goNext = async () => {
-    const fields = stepFields[step];
-    const valid = await trigger(fields);
-    if (valid) setStep((s) => Math.min(s + 1, STEPS.length - 1));
-  };
-
-  const goPrev = () => setStep((s) => Math.max(s - 1, 0));
 
   const onSubmit = async (data: BookingFormInput) => {
     setStatus("loading");
@@ -151,13 +140,17 @@ export function BookingForm({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...data,
+          destinationAddress:
+            data.tripStructure === "hourly"
+              ? "As directed"
+              : data.destinationAddress,
           referrer: document.referrer,
         }),
       });
 
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
-        throw new Error(body.error || "Failed to submit booking");
+        throw new Error(body.error || "Failed to submit request");
       }
 
       const body = await res.json();
@@ -183,249 +176,260 @@ export function BookingForm({
         )}
         <p className="mt-4 text-muted-silver">
           {confirmationText ||
-            "Thank you. Our team will review your request and contact you with confirmation or a quote."}
+            "Thank you. Our team will review your trip details and contact you with your quote or confirmation."}
         </p>
       </div>
     );
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6" noValidate>
-      <input type="text" {...register("honeypot")} className="hidden" tabIndex={-1} autoComplete="off" aria-hidden="true" />
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-8" noValidate>
+        <input
+          type="text"
+          {...register("honeypot")}
+          className="hidden"
+          tabIndex={-1}
+          autoComplete="off"
+          aria-hidden="true"
+        />
 
-      <div className="flex gap-2 border-b border-antique-gold/20 pb-4">
-        <button
-          type="button"
-          onClick={() => form.setValue("mode", "booking")}
-          className={cn(
-            "rounded-sm px-4 py-2 text-sm font-medium transition-colors",
-            mode === "booking" ? "bg-signature-gold text-obsidian" : "text-muted-silver hover:text-ivory"
-          )}
-        >
-          Book a Ride
-        </button>
-        <button
-          type="button"
-          onClick={() => form.setValue("mode", "quote")}
-          className={cn(
-            "rounded-sm px-4 py-2 text-sm font-medium transition-colors",
-            mode === "quote" ? "bg-signature-gold text-obsidian" : "text-muted-silver hover:text-ivory"
-          )}
-        >
-          Request a Quote
-        </button>
-      </div>
-
-      <div className="flex gap-2">
-        {STEPS.map((label, i) => (
-          <div
-            key={label}
-            className={cn(
-              "flex-1 rounded-sm py-2 text-center text-xs font-medium uppercase tracking-wider",
-              i === step ? "bg-signature-gold/20 text-signature-gold" : "text-muted-silver",
-              i < step && "text-signature-gold/70"
-            )}
+        <div className="flex flex-wrap gap-2 rounded-sm border border-antique-gold/20 bg-obsidian/30 p-1">
+          <ModeTab
+            active={mode === "quote"}
+            onClick={() => setValue("mode", "quote")}
           >
-            {label}
-          </div>
-        ))}
-      </div>
+            Get a Quote
+          </ModeTab>
+          <ModeTab
+            active={mode === "booking"}
+            onClick={() => setValue("mode", "booking")}
+          >
+            Book a Ride
+          </ModeTab>
+        </div>
 
-      {step === 0 && (
-        <div className="space-y-4">
+        <FormSection title="Trip details">
+          <div className="mb-4 flex rounded-sm border border-antique-gold/20 bg-obsidian/40 p-1">
+            <StructureTab
+              active={tripStructure === "one-way"}
+              onClick={() => setValue("tripStructure", "one-way")}
+            >
+              One way
+            </StructureTab>
+            <StructureTab
+              active={tripStructure === "hourly"}
+              onClick={() => setValue("tripStructure", "hourly")}
+            >
+              By the hour
+            </StructureTab>
+            <StructureTab
+              active={tripStructure === "round-trip"}
+              onClick={() => setValue("tripStructure", "round-trip")}
+            >
+              Round trip
+            </StructureTab>
+          </div>
+
           <div className="grid gap-4 sm:grid-cols-2">
-            <div>
-              <label className="mb-1 block text-xs font-medium uppercase tracking-wider text-signature-gold">Ride Type</label>
-              <select {...register("rideType")} className={inputClass}>
+            <Field label="Pickup location" error={errors.pickupAddress?.message}>
+              <input type="text" {...register("pickupAddress")} className={inputClass} />
+            </Field>
+
+            {tripStructure === "one-way" || tripStructure === "round-trip" ? (
+              <Field label="Drop-off location" error={errors.destinationAddress?.message}>
+                <input type="text" {...register("destinationAddress")} className={inputClass} />
+              </Field>
+            ) : (
+              <Field label="Hours needed" error={errors.durationHours?.message}>
+                <select {...register("durationHours")} className={inputClass}>
+                  {[2, 3, 4, 5, 6, 8, 10, 12].map((h) => (
+                    <option key={h} value={h}>
+                      {h} hours
+                    </option>
+                  ))}
+                </select>
+              </Field>
+            )}
+
+            <Field label="Date" error={errors.pickupDate?.message}>
+              <input type="date" {...register("pickupDate")} className={inputClass} />
+            </Field>
+            <Field label="Pickup time" error={errors.pickupTime?.message}>
+              <input type="time" {...register("pickupTime")} className={inputClass} />
+            </Field>
+
+            <Field label="Service type">
+              <select {...register("rideType")} className={inputClass} disabled={tripStructure === "hourly"}>
                 {RIDE_TYPES.map((t) => (
-                  <option key={t.value} value={t.value}>{t.label}</option>
+                  <option key={t.value} value={t.value}>
+                    {t.label}
+                  </option>
                 ))}
               </select>
-            </div>
-            <div>
-              <label className="mb-1 block text-xs font-medium uppercase tracking-wider text-signature-gold">Trip Type</label>
-              <select {...register("tripStructure")} className={inputClass}>
-                <option value="one-way">One Way</option>
-                <option value="round-trip">Round Trip</option>
-              </select>
-            </div>
-          </div>
+            </Field>
 
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div>
-              <label className="mb-1 block text-xs font-medium uppercase tracking-wider text-signature-gold">Pickup Address</label>
-              <input type="text" {...register("pickupAddress")} className={inputClass} />
-              {errors.pickupAddress && <p className="mt-1 text-sm text-red-400">{errors.pickupAddress.message}</p>}
-            </div>
-            <div>
-              <label className="mb-1 block text-xs font-medium uppercase tracking-wider text-signature-gold">Destination</label>
-              <input type="text" {...register("destinationAddress")} className={inputClass} />
-              {errors.destinationAddress && <p className="mt-1 text-sm text-red-400">{errors.destinationAddress.message}</p>}
-            </div>
-          </div>
-
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div>
-              <label className="mb-1 block text-xs font-medium uppercase tracking-wider text-signature-gold">Pickup Date</label>
-              <input type="date" {...register("pickupDate")} className={inputClass} />
-              {errors.pickupDate && <p className="mt-1 text-sm text-red-400">{errors.pickupDate.message}</p>}
-            </div>
-            <div>
-              <label className="mb-1 block text-xs font-medium uppercase tracking-wider text-signature-gold">Pickup Time</label>
-              <input type="time" {...register("pickupTime")} className={inputClass} />
-              {errors.pickupTime && <p className="mt-1 text-sm text-red-400">{errors.pickupTime.message}</p>}
-            </div>
+            <Field label="Passengers" error={errors.passengerCount?.message}>
+              <input type="number" min={1} {...register("passengerCount")} className={inputClass} />
+            </Field>
           </div>
 
           {tripStructure === "round-trip" && (
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div>
-                <label className="mb-1 block text-xs font-medium uppercase tracking-wider text-signature-gold">Return Date</label>
+            <div className="mt-4 grid gap-4 sm:grid-cols-2">
+              <Field label="Return date" error={errors.returnDate?.message}>
                 <input type="date" {...register("returnDate")} className={inputClass} />
-                {errors.returnDate && <p className="mt-1 text-sm text-red-400">{errors.returnDate.message}</p>}
-              </div>
-              <div>
-                <label className="mb-1 block text-xs font-medium uppercase tracking-wider text-signature-gold">Return Time</label>
+              </Field>
+              <Field label="Return time" error={errors.returnTime?.message}>
                 <input type="time" {...register("returnTime")} className={inputClass} />
-                {errors.returnTime && <p className="mt-1 text-sm text-red-400">{errors.returnTime.message}</p>}
-              </div>
+              </Field>
             </div>
           )}
 
-          {rideType === "airport" && (
-            <div className="grid gap-4 sm:grid-cols-3">
-              <div>
-                <label className="mb-1 block text-xs font-medium uppercase tracking-wider text-signature-gold">Airport Code</label>
-                <input type="text" {...register("airportCode")} placeholder="ALB" className={inputClass} />
-              </div>
-              <div>
-                <label className="mb-1 block text-xs font-medium uppercase tracking-wider text-signature-gold">Flight Type</label>
+          {rideType === "airport" && tripStructure !== "hourly" && (
+            <div className="mt-4 grid gap-4 sm:grid-cols-3">
+              <Field label="Airport code">
+                <input type="text" {...register("airportCode")} placeholder="ALB or JFK" className={inputClass} />
+              </Field>
+              <Field label="Flight type">
                 <select {...register("flightType")} className={inputClass}>
                   <option value="">Select</option>
                   <option value="arrival">Arrival</option>
                   <option value="departure">Departure</option>
                 </select>
-              </div>
-              <div>
-                <label className="mb-1 block text-xs font-medium uppercase tracking-wider text-signature-gold">Flight Number</label>
+              </Field>
+              <Field label="Flight number">
                 <input type="text" {...register("flightNumber")} className={inputClass} />
-              </div>
+              </Field>
             </div>
           )}
-        </div>
-      )}
+        </FormSection>
 
-      {step === 1 && (
-        <div className="space-y-4">
+        <FormSection title="Your contact information">
           <div className="grid gap-4 sm:grid-cols-2">
-            <div>
-              <label className="mb-1 block text-xs font-medium uppercase tracking-wider text-signature-gold">Passengers</label>
-              <input type="number" min={1} {...register("passengerCount")} className={inputClass} />
-              {errors.passengerCount && <p className="mt-1 text-sm text-red-400">{errors.passengerCount.message}</p>}
-            </div>
-            <div>
-              <label className="mb-1 block text-xs font-medium uppercase tracking-wider text-signature-gold">Luggage Pieces</label>
-              <input type="number" min={0} {...register("luggageCount")} className={inputClass} />
-            </div>
-          </div>
-          <div className="flex flex-wrap gap-6">
-            <label className="flex items-center gap-2 text-sm text-muted-silver">
-              <input type="checkbox" {...register("childSeatRequest")} className="rounded border-antique-gold/30" />
-              Child seat needed
-            </label>
-            <label className="flex items-center gap-2 text-sm text-muted-silver">
-              <input type="checkbox" {...register("accessibilityRequest")} className="rounded border-antique-gold/30" />
-              Accessibility assistance
-            </label>
-          </div>
-          <div>
-            <label className="mb-1 block text-xs font-medium uppercase tracking-wider text-signature-gold">Special Assistance</label>
-            <textarea rows={3} {...register("specialAssistance")} className={inputClass} />
-          </div>
-        </div>
-      )}
-
-      {step === 2 && (
-        <div className="space-y-4">
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div>
-              <label className="mb-1 block text-xs font-medium uppercase tracking-wider text-signature-gold">Full Name</label>
+            <Field label="Full name" error={errors.contactName?.message}>
               <input type="text" {...register("contactName")} className={inputClass} />
-              {errors.contactName && <p className="mt-1 text-sm text-red-400">{errors.contactName.message}</p>}
-            </div>
-            <div>
-              <label className="mb-1 block text-xs font-medium uppercase tracking-wider text-signature-gold">Company (optional)</label>
-              <input type="text" {...register("company")} className={inputClass} />
-            </div>
-          </div>
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div>
-              <label className="mb-1 block text-xs font-medium uppercase tracking-wider text-signature-gold">Email</label>
-              <input type="email" {...register("contactEmail")} className={inputClass} />
-              {errors.contactEmail && <p className="mt-1 text-sm text-red-400">{errors.contactEmail.message}</p>}
-            </div>
-            <div>
-              <label className="mb-1 block text-xs font-medium uppercase tracking-wider text-signature-gold">Phone</label>
+            </Field>
+            <Field label="Phone" error={errors.contactPhone?.message}>
               <input type="tel" {...register("contactPhone")} className={inputClass} />
-              {errors.contactPhone && <p className="mt-1 text-sm text-red-400">{errors.contactPhone.message}</p>}
-            </div>
+            </Field>
+            <Field label="Email" error={errors.contactEmail?.message}>
+              <input type="email" {...register("contactEmail")} className={inputClass} />
+            </Field>
+            <Field label="Company (optional)">
+              <input type="text" {...register("company")} className={inputClass} />
+            </Field>
           </div>
-          <div>
-            <label className="mb-1 block text-xs font-medium uppercase tracking-wider text-signature-gold">Preferred Contact</label>
-            <select {...register("preferredContact")} className={inputClass}>
-              <option value="either">Either</option>
-              <option value="phone">Phone</option>
-              <option value="email">Email</option>
-            </select>
+          <div className="mt-4">
+            <Field label="Special instructions (optional)">
+              <textarea rows={4} {...register("specialInstructions")} className={inputClass} />
+            </Field>
           </div>
-          <div>
-            <label className="mb-1 block text-xs font-medium uppercase tracking-wider text-signature-gold">Special Instructions</label>
-            <textarea rows={4} {...register("specialInstructions")} className={inputClass} />
-          </div>
+        </FormSection>
+
+        <div className="flex items-start gap-3">
+          <input
+            id="booking-consent"
+            type="checkbox"
+            {...register("consent")}
+            className="mt-1 h-4 w-4 rounded border-antique-gold/30"
+          />
+          <label htmlFor="booking-consent" className="text-sm text-muted-silver">
+            I agree to be contacted about this request and understand my information will be
+            handled per the privacy policy.
+          </label>
         </div>
+        {errors.consent && <p className="text-sm text-red-400">{errors.consent.message}</p>}
+
+        {status === "error" && <p className="text-sm text-red-400">{errorMessage}</p>}
+
+        <Button
+          type="submit"
+          variant="gold"
+          size="lg"
+          magnetic
+          disabled={status === "loading"}
+          className="w-full sm:w-auto"
+        >
+          {status === "loading"
+            ? "Submitting..."
+            : mode === "quote"
+              ? "Get a Quote"
+              : "Submit Booking Request"}
+        </Button>
+      </form>
+  );
+}
+
+function FormSection({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <section className="rounded-sm border border-antique-gold/15 bg-charcoal/20 p-5 md:p-6">
+      <h3 className="mb-4 font-display text-xl text-ivory">{title}</h3>
+      {children}
+    </section>
+  );
+}
+
+function Field({
+  label,
+  error,
+  children,
+}: {
+  label: string;
+  error?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div>
+      <label className="mb-1 block text-xs font-medium uppercase tracking-wider text-signature-gold">
+        {label}
+      </label>
+      {children}
+      {error && <p className="mt-1 text-sm text-red-400">{error}</p>}
+    </div>
+  );
+}
+
+function ModeTab({
+  active,
+  onClick,
+  children,
+}: {
+  active: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(
+        "rounded-sm px-4 py-2 text-sm font-semibold transition-colors",
+        active ? "bg-signature-gold text-obsidian" : "text-muted-silver hover:text-ivory"
       )}
+    >
+      {children}
+    </button>
+  );
+}
 
-      {step === 3 && (
-        <div className="space-y-4">
-          <div className="rounded-sm border border-antique-gold/20 bg-charcoal/30 p-6 text-sm text-muted-silver space-y-2">
-            <p><span className="text-signature-gold">Mode:</span> {mode === "quote" ? "Quote Request" : "Booking"}</p>
-            <p><span className="text-signature-gold">Ride:</span> {rideType} — {tripStructure}</p>
-            <p><span className="text-signature-gold">From:</span> {watch("pickupAddress")}</p>
-            <p><span className="text-signature-gold">To:</span> {watch("destinationAddress")}</p>
-            <p><span className="text-signature-gold">When:</span> {watch("pickupDate")} {watch("pickupTime")}</p>
-            <p><span className="text-signature-gold">Contact:</span> {watch("contactName")} — {watch("contactEmail")}</p>
-          </div>
-          <div className="flex items-start gap-3">
-            <input
-              id="booking-consent"
-              type="checkbox"
-              {...register("consent")}
-              className="mt-1 h-4 w-4 rounded border-antique-gold/30"
-            />
-            <label htmlFor="booking-consent" className="text-sm text-muted-silver">
-              I agree to be contacted about this request and understand my information will be handled per the privacy policy.
-            </label>
-          </div>
-          {errors.consent && <p className="text-sm text-red-400">{errors.consent.message}</p>}
-        </div>
+function StructureTab({
+  active,
+  onClick,
+  children,
+}: {
+  active: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(
+        "flex-1 rounded-sm px-3 py-2 text-sm font-semibold transition-colors",
+        active ? "bg-signature-gold text-obsidian" : "text-muted-silver hover:text-ivory"
       )}
-
-      {status === "error" && <p className="text-sm text-red-400">{errorMessage}</p>}
-
-      <div className="flex justify-between gap-4">
-        {step > 0 ? (
-          <Button type="button" variant="outline" onClick={goPrev}>Back</Button>
-        ) : (
-          <span />
-        )}
-        {step < STEPS.length - 1 ? (
-          <Button type="button" variant="gold" onClick={goNext} magnetic>Continue</Button>
-        ) : (
-          <Button type="submit" variant="gold" magnetic disabled={status === "loading"}>
-            {status === "loading" ? "Submitting..." : mode === "quote" ? "Submit Quote Request" : "Submit Booking"}
-          </Button>
-        )}
-      </div>
-    </form>
+    >
+      {children}
+    </button>
   );
 }

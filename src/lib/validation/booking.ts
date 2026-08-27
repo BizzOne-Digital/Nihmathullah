@@ -10,7 +10,7 @@ import {
   utmFields,
 } from "./common";
 
-const tripStructureField = z.enum(["one-way", "round-trip"]);
+const tripStructureField = z.enum(["one-way", "round-trip", "hourly"]);
 const preferredContactField = z.enum(["phone", "email", "either"]);
 const flightTypeField = z.enum(["arrival", "departure"]);
 
@@ -24,11 +24,8 @@ export const bookingFormSchema = z
       .trim()
       .min(1, "Pickup address is required")
       .max(500),
-    destinationAddress: z
-      .string()
-      .trim()
-      .min(1, "Destination address is required")
-      .max(500),
+    destinationAddress: z.string().trim().max(500).optional().or(z.literal("")),
+    durationHours: z.coerce.number().int().min(1).max(24).optional(),
     stops: z.array(z.string().trim().min(1).max(500)).max(10).optional(),
     pickupDate: z.string().trim().min(1, "Pickup date is required").max(20),
     pickupTime: z.string().trim().min(1, "Pickup time is required").max(20),
@@ -68,6 +65,24 @@ export const bookingFormSchema = z
     ...utmFields,
   })
   .superRefine((data, ctx) => {
+    if (data.tripStructure === "one-way" || data.tripStructure === "round-trip") {
+      if (!data.destinationAddress?.trim()) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "Drop-off location is required",
+          path: ["destinationAddress"],
+        });
+      }
+    }
+    if (data.tripStructure === "hourly") {
+      if (!data.durationHours) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "Hours needed is required for hourly service",
+          path: ["durationHours"],
+        });
+      }
+    }
     if (data.tripStructure === "round-trip") {
       if (!data.returnDate) {
         ctx.addIssue({

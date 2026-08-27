@@ -143,9 +143,10 @@ export interface PricingSettingsData {
 export interface BookingFormData {
   mode: "booking" | "quote";
   rideType: string;
-  tripStructure: "one-way" | "round-trip";
+  tripStructure: "one-way" | "round-trip" | "hourly";
   pickupAddress: string;
   destinationAddress: string;
+  durationHours?: number;
   stops?: string[];
   pickupDate: string;
   pickupTime: string;
