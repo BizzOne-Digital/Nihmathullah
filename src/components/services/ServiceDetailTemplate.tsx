@@ -51,11 +51,8 @@ export function ServiceDetailTemplate({ service }: ServiceDetailTemplateProps) {
               </p>
             )}
             <div className="mt-8 flex flex-wrap gap-4">
-              <Button href="/booking?mode=quote" variant="gold" size="lg" magnetic>
-                Get a Quote
-              </Button>
-              <Button href="/booking?mode=booking" variant="outline" size="lg">
-                Book This Service
+              <Button href={`/booking?rideType=${listing.slug}`} variant="gold" size="lg" magnetic>
+                Request a Ride
               </Button>
             </div>
           </RevealOnScroll>
@@ -83,10 +80,10 @@ export function ServiceDetailTemplate({ service }: ServiceDetailTemplateProps) {
 
       <section className="section-theme-black py-12">
         <Container className="text-center">
-          <h2 className="font-display text-2xl text-ivory">Ready to book {listing.title}?</h2>
+          <h2 className="font-display text-2xl text-ivory">Ready to request {listing.title}?</h2>
           <div className="mt-6 flex flex-wrap justify-center gap-4">
-            <Button href={`/booking?mode=quote&rideType=${listing.slug}`} variant="gold" magnetic>
-              Request a Quote
+            <Button href={`/booking?rideType=${listing.slug}`} variant="gold" magnetic>
+              Submit Booking Request
             </Button>
             <Link href="/services" className="text-sm text-signature-gold hover:text-champagne">
               ← All Services

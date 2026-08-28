@@ -1,12 +1,15 @@
 import { revalidatePath } from "next/cache";
 import { createBooking } from "@/lib/repositories/bookings";
-import { notifyAdminNewBooking } from "@/lib/email/notifications";
+import { buildBookingRequestDetails } from "@/lib/booking/request-details";
+import {
+  notifyAdminNewBooking,
+  notifyCustomerBookingConfirmation,
+} from "@/lib/email/notifications";
 import { bookingFormSchema } from "@/lib/validation/booking";
 import { checkRateLimit, rateLimitResponse } from "@/lib/rate-limit";
 import { getClientIp } from "@/lib/api/request";
 import {
   handleApiError,
-  jsonError,
   jsonResponse,
   zodErrorResponse,
 } from "@/lib/api/response";
@@ -42,7 +45,7 @@ export async function POST(request: Request) {
     }
 
     const booking = await createBooking({
-      mode: data.mode,
+      mode: "booking",
       tripDetails: {
         rideType: data.rideType,
         tripStructure: data.tripStructure,
@@ -62,6 +65,7 @@ export async function POST(request: Request) {
         flightType: data.flightType,
         airline: data.airline || undefined,
         flightNumber: data.flightNumber || undefined,
+        vehiclePreference: data.vehiclePreference || undefined,
         passengerCount: data.passengerCount,
         luggageCount: data.luggageCount,
         childSeatRequest: data.childSeatRequest,
@@ -83,21 +87,13 @@ export async function POST(request: Request) {
 
     revalidatePath("/admin/bookings");
 
-    void notifyAdminNewBooking({
-      reference: booking.reference,
-      mode: data.mode,
-      contactName: data.contactName,
-      contactEmail: data.contactEmail,
-      contactPhone: data.contactPhone,
-      rideType: data.rideType,
-      pickupAddress: data.pickupAddress,
-      destinationAddress:
-        data.tripStructure === "hourly"
-          ? `As directed (${data.durationHours || 3} hours)`
-          : data.destinationAddress || "",
-      pickupDate: data.pickupDate,
-      pickupTime: data.pickupTime,
-    });
+    const requestDetails = buildBookingRequestDetails(
+      booking.reference,
+      data
+    );
+
+    void notifyAdminNewBooking(requestDetails);
+    void notifyCustomerBookingConfirmation(requestDetails);
 
     return jsonResponse({
       success: true,

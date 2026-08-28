@@ -46,7 +46,7 @@ export async function createBooking(
     const booking = await BookingRequest.create({
       reference: generateBookingReference(),
       mode: data.mode,
-      status: data.mode === "quote" ? "Needs Quote" : "New",
+      status: "New",
       tripDetails: data.tripDetails,
       utmSource: data.utmSource,
       utmMedium: data.utmMedium,

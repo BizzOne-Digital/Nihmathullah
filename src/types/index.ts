@@ -157,6 +157,7 @@ export interface BookingFormData {
   flightType?: "arrival" | "departure";
   airline?: string;
   flightNumber?: string;
+  vehiclePreference?: string;
   passengerCount: number;
   luggageCount: number;
   childSeatRequest?: boolean;

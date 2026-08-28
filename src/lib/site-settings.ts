@@ -56,4 +56,6 @@ export const DEFAULT_SITE_SETTINGS: SiteSettingsData = {
     "Pricing is provided by quote. Please call, request a quote, or book online for pricing.",
   logoUrl: "/uploads/settings/sierralink-logo.png",
   introAnimationEnabled: true,
+  bookingConfirmationText:
+    "Thank you for your booking request. This is not a confirmed reservation. A SierraLink representative will contact you by email or phone to confirm availability, provide pricing, and arrange payment.",
 };

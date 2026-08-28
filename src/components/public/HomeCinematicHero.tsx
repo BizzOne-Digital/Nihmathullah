@@ -9,7 +9,6 @@ import {
   Phone,
   Plane,
 } from "lucide-react";
-import { Button } from "@/components/ui/Button";
 import { BookingWidget } from "@/components/booking/BookingWidget";
 import type { SiteSettingsData } from "@/types";
 
@@ -103,17 +102,11 @@ export function HomeCinematicHero({
 
           <div className="mt-8 flex w-full max-w-full flex-wrap items-center gap-3 sm:gap-4">
             <Link
-              href="/booking?mode=booking"
+              href="/booking"
               className="inline-flex min-w-0 items-center justify-center gap-2 rounded-sm bg-gold-gradient px-5 py-3 text-xs font-semibold uppercase tracking-wider text-obsidian shadow-lg shadow-signature-gold/25 transition hover:brightness-110 sm:px-7 sm:py-3.5 sm:text-sm"
             >
-              Book a Ride
+              Request a Ride
               <ArrowRight className="h-4 w-4" />
-            </Link>
-            <Link
-              href="/booking?mode=quote"
-              className="inline-flex min-w-0 items-center justify-center rounded-sm border border-signature-gold/60 px-5 py-3 text-xs font-semibold uppercase tracking-wider text-signature-gold transition hover:bg-signature-gold/10 sm:px-7 sm:py-3.5 sm:text-sm"
-            >
-              Get a Quote
             </Link>
           </div>
 
@@ -130,14 +123,14 @@ export function HomeCinematicHero({
           <div className="mt-10 flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
             <div className="flex flex-wrap gap-3">
               <Link
-                href="/booking?mode=booking&rideType=airport&airport=ALB"
+                href="/booking?rideType=airport&airport=ALB"
                 className="inline-flex items-center gap-2 rounded-sm border border-antique-gold/25 bg-obsidian/50 px-4 py-2.5 text-xs font-semibold uppercase tracking-wider text-ivory backdrop-blur-sm transition hover:border-signature-gold/50"
               >
                 <Building2 className="h-4 w-4 text-signature-gold" />
                 ALB Airport
               </Link>
               <Link
-                href="/booking?mode=booking&rideType=airport&airport=JFK"
+                href="/booking?rideType=airport&airport=JFK"
                 className="inline-flex items-center gap-2 rounded-sm border border-antique-gold/25 bg-obsidian/50 px-4 py-2.5 text-xs font-semibold uppercase tracking-wider text-ivory backdrop-blur-sm transition hover:border-signature-gold/50"
               >
                 <Plane className="h-4 w-4 text-signature-gold" />
@@ -164,7 +157,7 @@ export function HomeCinematicHero({
           </div>
         </div>
 
-        <BookingWidget className="relative z-20" mode="quote" submitLabel="Get a Quote" />
+        <BookingWidget className="relative z-20" submitLabel="Request a Ride" />
       </div>
     </section>
   );

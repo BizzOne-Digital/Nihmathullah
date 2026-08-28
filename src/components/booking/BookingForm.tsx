@@ -19,10 +19,15 @@ const RIDE_TYPES = [
   { value: "hourly", label: "Hourly / As Directed" },
 ];
 
+export interface BookingVehicleOption {
+  id: string;
+  name: string;
+}
+
 interface BookingFormProps {
-  defaultMode?: "booking" | "quote";
   initialValues?: Partial<BookingFormInput>;
   confirmationText?: string;
+  vehicles?: BookingVehicleOption[];
 }
 
 function getTimezone(): string {
@@ -34,7 +39,7 @@ function getTimezone(): string {
 }
 
 const defaultFormValues: BookingFormInput = {
-  mode: "quote",
+  mode: "booking",
   rideType: "airport",
   tripStructure: "one-way",
   pickupAddress: "",
@@ -50,6 +55,7 @@ const defaultFormValues: BookingFormInput = {
   flightType: undefined,
   airline: "",
   flightNumber: "",
+  vehiclePreference: "",
   passengerCount: 1,
   luggageCount: 0,
   childSeatRequest: false,
@@ -66,9 +72,9 @@ const defaultFormValues: BookingFormInput = {
 };
 
 export function BookingForm({
-  defaultMode = "quote",
   initialValues,
   confirmationText,
+  vehicles = [],
 }: BookingFormProps) {
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [errorMessage, setErrorMessage] = useState("");
@@ -78,9 +84,9 @@ export function BookingForm({
     resolver: zodResolver(bookingFormSchema),
     defaultValues: {
       ...defaultFormValues,
-      mode: defaultMode,
       timezone: getTimezone(),
       ...initialValues,
+      mode: "booking",
     },
     mode: "onBlur",
   });
@@ -94,7 +100,6 @@ export function BookingForm({
     formState: { errors },
   } = form;
 
-  const mode = watch("mode");
   const tripStructure = watch("tripStructure");
   const rideType = watch("rideType");
 
@@ -103,12 +108,12 @@ export function BookingForm({
       const saved = localStorage.getItem(STORAGE_KEY);
       if (saved && !initialValues?.pickupAddress) {
         const parsed = JSON.parse(saved) as Partial<BookingFormInput>;
-        reset({ ...defaultFormValues, mode: defaultMode, ...parsed });
+        reset({ ...defaultFormValues, mode: "booking", ...parsed });
       }
     } catch {
       /* ignore */
     }
-  }, [defaultMode, initialValues?.pickupAddress, reset]);
+  }, [initialValues?.pickupAddress, reset]);
 
   useEffect(() => {
     const subscription = watch((values) => {
@@ -140,6 +145,7 @@ export function BookingForm({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...data,
+          mode: "booking",
           destinationAddress:
             data.tripStructure === "hourly"
               ? "As directed"
@@ -167,7 +173,7 @@ export function BookingForm({
     return (
       <div className="rounded-sm border border-signature-gold/30 bg-charcoal/40 p-8 text-center">
         <h3 className="font-display text-2xl text-signature-gold">
-          {mode === "quote" ? "Quote Request Received" : "Booking Submitted"}
+          Booking Request Received
         </h3>
         {reference && (
           <p className="mt-2 text-ivory">
@@ -176,186 +182,209 @@ export function BookingForm({
         )}
         <p className="mt-4 text-muted-silver">
           {confirmationText ||
-            "Thank you. Our team will review your trip details and contact you with your quote or confirmation."}
+            "Thank you. We received your request and will contact you by email or phone to confirm availability, pricing, and payment. This is not a confirmed reservation yet."}
+        </p>
+        <p className="mt-3 text-sm text-muted-silver">
+          A confirmation email has been sent to the address you provided.
         </p>
       </div>
     );
   }
 
+  const showFlightFields = rideType === "airport";
+
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-8" noValidate>
-        <input
-          type="text"
-          {...register("honeypot")}
-          className="hidden"
-          tabIndex={-1}
-          autoComplete="off"
-          aria-hidden="true"
-        />
+      <input
+        type="text"
+        {...register("honeypot")}
+        className="hidden"
+        tabIndex={-1}
+        autoComplete="off"
+        aria-hidden="true"
+      />
+      <input type="hidden" {...register("mode")} value="booking" />
 
-        <div className="flex flex-wrap gap-2 rounded-sm border border-antique-gold/20 bg-obsidian/30 p-1">
-          <ModeTab
-            active={mode === "quote"}
-            onClick={() => setValue("mode", "quote")}
+      <div className="rounded-sm border border-antique-gold/20 bg-obsidian/30 px-4 py-3 text-sm text-muted-silver">
+        Submit a <strong className="text-ivory">booking request</strong> — no account
+        required. This is not an instant confirmation or online payment. We will
+        contact you to confirm availability, price, and payment details.
+      </div>
+
+      <FormSection title="Trip details">
+        <div className="mb-4 flex rounded-sm border border-antique-gold/20 bg-obsidian/40 p-1">
+          <StructureTab
+            active={tripStructure === "one-way"}
+            onClick={() => setValue("tripStructure", "one-way")}
           >
-            Get a Quote
-          </ModeTab>
-          <ModeTab
-            active={mode === "booking"}
-            onClick={() => setValue("mode", "booking")}
+            One way
+          </StructureTab>
+          <StructureTab
+            active={tripStructure === "hourly"}
+            onClick={() => setValue("tripStructure", "hourly")}
           >
-            Book a Ride
-          </ModeTab>
+            By the hour
+          </StructureTab>
+          <StructureTab
+            active={tripStructure === "round-trip"}
+            onClick={() => setValue("tripStructure", "round-trip")}
+          >
+            Round trip
+          </StructureTab>
         </div>
 
-        <FormSection title="Trip details">
-          <div className="mb-4 flex rounded-sm border border-antique-gold/20 bg-obsidian/40 p-1">
-            <StructureTab
-              active={tripStructure === "one-way"}
-              onClick={() => setValue("tripStructure", "one-way")}
+        <div className="grid gap-4 sm:grid-cols-2">
+          <Field label="Service type" error={errors.rideType?.message}>
+            <select
+              {...register("rideType")}
+              className={inputClass}
+              disabled={tripStructure === "hourly"}
             >
-              One way
-            </StructureTab>
-            <StructureTab
-              active={tripStructure === "hourly"}
-              onClick={() => setValue("tripStructure", "hourly")}
-            >
-              By the hour
-            </StructureTab>
-            <StructureTab
-              active={tripStructure === "round-trip"}
-              onClick={() => setValue("tripStructure", "round-trip")}
-            >
-              Round trip
-            </StructureTab>
-          </div>
+              {RIDE_TYPES.map((t) => (
+                <option key={t.value} value={t.value}>
+                  {t.label}
+                </option>
+              ))}
+            </select>
+          </Field>
 
-          <div className="grid gap-4 sm:grid-cols-2">
-            <Field label="Pickup location" error={errors.pickupAddress?.message}>
-              <input type="text" {...register("pickupAddress")} className={inputClass} />
+          <Field label="Preferred vehicle">
+            <select {...register("vehiclePreference")} className={inputClass}>
+              <option value="">No preference</option>
+              {vehicles.map((vehicle) => (
+                <option key={vehicle.id} value={vehicle.name}>
+                  {vehicle.name}
+                </option>
+              ))}
+            </select>
+          </Field>
+
+          <Field label="Pickup location" error={errors.pickupAddress?.message}>
+            <input type="text" {...register("pickupAddress")} className={inputClass} />
+          </Field>
+
+          {tripStructure === "one-way" || tripStructure === "round-trip" ? (
+            <Field label="Destination" error={errors.destinationAddress?.message}>
+              <input type="text" {...register("destinationAddress")} className={inputClass} />
             </Field>
-
-            {tripStructure === "one-way" || tripStructure === "round-trip" ? (
-              <Field label="Drop-off location" error={errors.destinationAddress?.message}>
-                <input type="text" {...register("destinationAddress")} className={inputClass} />
-              </Field>
-            ) : (
-              <Field label="Hours needed" error={errors.durationHours?.message}>
-                <select {...register("durationHours")} className={inputClass}>
-                  {[2, 3, 4, 5, 6, 8, 10, 12].map((h) => (
-                    <option key={h} value={h}>
-                      {h} hours
-                    </option>
-                  ))}
-                </select>
-              </Field>
-            )}
-
-            <Field label="Date" error={errors.pickupDate?.message}>
-              <input type="date" {...register("pickupDate")} className={inputClass} />
-            </Field>
-            <Field label="Pickup time" error={errors.pickupTime?.message}>
-              <input type="time" {...register("pickupTime")} className={inputClass} />
-            </Field>
-
-            <Field label="Service type">
-              <select {...register("rideType")} className={inputClass} disabled={tripStructure === "hourly"}>
-                {RIDE_TYPES.map((t) => (
-                  <option key={t.value} value={t.value}>
-                    {t.label}
+          ) : (
+            <Field label="Hours needed" error={errors.durationHours?.message}>
+              <select {...register("durationHours")} className={inputClass}>
+                {[2, 3, 4, 5, 6, 8, 10, 12].map((h) => (
+                  <option key={h} value={h}>
+                    {h} hours
                   </option>
                 ))}
               </select>
             </Field>
-
-            <Field label="Passengers" error={errors.passengerCount?.message}>
-              <input type="number" min={1} {...register("passengerCount")} className={inputClass} />
-            </Field>
-          </div>
-
-          {tripStructure === "round-trip" && (
-            <div className="mt-4 grid gap-4 sm:grid-cols-2">
-              <Field label="Return date" error={errors.returnDate?.message}>
-                <input type="date" {...register("returnDate")} className={inputClass} />
-              </Field>
-              <Field label="Return time" error={errors.returnTime?.message}>
-                <input type="time" {...register("returnTime")} className={inputClass} />
-              </Field>
-            </div>
           )}
 
-          {rideType === "airport" && tripStructure !== "hourly" && (
-            <div className="mt-4 grid gap-4 sm:grid-cols-3">
-              <Field label="Airport code">
-                <input type="text" {...register("airportCode")} placeholder="ALB or JFK" className={inputClass} />
-              </Field>
-              <Field label="Flight type">
-                <select {...register("flightType")} className={inputClass}>
-                  <option value="">Select</option>
-                  <option value="arrival">Arrival</option>
-                  <option value="departure">Departure</option>
-                </select>
-              </Field>
-              <Field label="Flight number">
-                <input type="text" {...register("flightNumber")} className={inputClass} />
-              </Field>
-            </div>
-          )}
-        </FormSection>
+          <Field label="Date" error={errors.pickupDate?.message}>
+            <input type="date" {...register("pickupDate")} className={inputClass} />
+          </Field>
+          <Field label="Pickup time" error={errors.pickupTime?.message}>
+            <input type="time" {...register("pickupTime")} className={inputClass} />
+          </Field>
 
-        <FormSection title="Your contact information">
-          <div className="grid gap-4 sm:grid-cols-2">
-            <Field label="Full name" error={errors.contactName?.message}>
-              <input type="text" {...register("contactName")} className={inputClass} />
-            </Field>
-            <Field label="Phone" error={errors.contactPhone?.message}>
-              <input type="tel" {...register("contactPhone")} className={inputClass} />
-            </Field>
-            <Field label="Email" error={errors.contactEmail?.message}>
-              <input type="email" {...register("contactEmail")} className={inputClass} />
-            </Field>
-            <Field label="Company (optional)">
-              <input type="text" {...register("company")} className={inputClass} />
-            </Field>
-          </div>
-          <div className="mt-4">
-            <Field label="Special instructions (optional)">
-              <textarea rows={4} {...register("specialInstructions")} className={inputClass} />
-            </Field>
-          </div>
-        </FormSection>
-
-        <div className="flex items-start gap-3">
-          <input
-            id="booking-consent"
-            type="checkbox"
-            {...register("consent")}
-            className="mt-1 h-4 w-4 rounded border-antique-gold/30"
-          />
-          <label htmlFor="booking-consent" className="text-sm text-muted-silver">
-            I agree to be contacted about this request and understand my information will be
-            handled per the privacy policy.
-          </label>
+          <Field label="Passengers" error={errors.passengerCount?.message}>
+            <input type="number" min={1} {...register("passengerCount")} className={inputClass} />
+          </Field>
+          <Field label="Luggage pieces" error={errors.luggageCount?.message}>
+            <input type="number" min={0} {...register("luggageCount")} className={inputClass} />
+          </Field>
         </div>
-        {errors.consent && <p className="text-sm text-red-400">{errors.consent.message}</p>}
 
-        {status === "error" && <p className="text-sm text-red-400">{errorMessage}</p>}
+        {tripStructure === "round-trip" && (
+          <div className="mt-4 grid gap-4 sm:grid-cols-2">
+            <Field label="Return date" error={errors.returnDate?.message}>
+              <input type="date" {...register("returnDate")} className={inputClass} />
+            </Field>
+            <Field label="Return time" error={errors.returnTime?.message}>
+              <input type="time" {...register("returnTime")} className={inputClass} />
+            </Field>
+          </div>
+        )}
+      </FormSection>
 
-        <Button
-          type="submit"
-          variant="gold"
-          size="lg"
-          magnetic
-          disabled={status === "loading"}
-          className="w-full sm:w-auto"
-        >
-          {status === "loading"
-            ? "Submitting..."
-            : mode === "quote"
-              ? "Get a Quote"
-              : "Submit Booking Request"}
-        </Button>
-      </form>
+      {showFlightFields && (
+        <FormSection title="Flight details (if applicable)">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Field label="Airport code">
+              <input
+                type="text"
+                {...register("airportCode")}
+                placeholder="ALB or JFK"
+                className={inputClass}
+              />
+            </Field>
+            <Field label="Flight type">
+              <select {...register("flightType")} className={inputClass}>
+                <option value="">Select</option>
+                <option value="arrival">Arrival</option>
+                <option value="departure">Departure</option>
+              </select>
+            </Field>
+            <Field label="Airline">
+              <input type="text" {...register("airline")} className={inputClass} />
+            </Field>
+            <Field label="Flight number">
+              <input type="text" {...register("flightNumber")} className={inputClass} />
+            </Field>
+          </div>
+        </FormSection>
+      )}
+
+      <FormSection title="Your contact information">
+        <div className="grid gap-4 sm:grid-cols-2">
+          <Field label="Full name" error={errors.contactName?.message}>
+            <input type="text" {...register("contactName")} className={inputClass} />
+          </Field>
+          <Field label="Phone" error={errors.contactPhone?.message}>
+            <input type="tel" {...register("contactPhone")} className={inputClass} />
+          </Field>
+          <Field label="Email" error={errors.contactEmail?.message} className="sm:col-span-2">
+            <input type="email" {...register("contactEmail")} className={inputClass} />
+          </Field>
+        </div>
+        <div className="mt-4">
+          <Field label="Notes (optional)">
+            <textarea
+              rows={4}
+              {...register("specialInstructions")}
+              placeholder="Special instructions, child seats, accessibility needs, etc."
+              className={inputClass}
+            />
+          </Field>
+        </div>
+      </FormSection>
+
+      <div className="flex items-start gap-3">
+        <input
+          id="booking-consent"
+          type="checkbox"
+          {...register("consent")}
+          className="mt-1 h-4 w-4 rounded border-antique-gold/30"
+        />
+        <label htmlFor="booking-consent" className="text-sm text-muted-silver">
+          I agree to be contacted about this booking request and understand my
+          information will be handled per the privacy policy.
+        </label>
+      </div>
+      {errors.consent && <p className="text-sm text-red-400">{errors.consent.message}</p>}
+
+      {status === "error" && <p className="text-sm text-red-400">{errorMessage}</p>}
+
+      <Button
+        type="submit"
+        variant="gold"
+        size="lg"
+        magnetic
+        disabled={status === "loading"}
+        className="w-full sm:w-auto"
+      >
+        {status === "loading" ? "Submitting request..." : "Submit Booking Request"}
+      </Button>
+    </form>
   );
 }
 
@@ -372,42 +401,21 @@ function Field({
   label,
   error,
   children,
+  className,
 }: {
   label: string;
   error?: string;
   children: React.ReactNode;
+  className?: string;
 }) {
   return (
-    <div>
+    <div className={className}>
       <label className="mb-1 block text-xs font-medium uppercase tracking-wider text-signature-gold">
         {label}
       </label>
       {children}
       {error && <p className="mt-1 text-sm text-red-400">{error}</p>}
     </div>
-  );
-}
-
-function ModeTab({
-  active,
-  onClick,
-  children,
-}: {
-  active: boolean;
-  onClick: () => void;
-  children: React.ReactNode;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={cn(
-        "rounded-sm px-4 py-2 text-sm font-semibold transition-colors",
-        active ? "bg-signature-gold text-obsidian" : "text-muted-silver hover:text-ivory"
-      )}
-    >
-      {children}
-    </button>
   );
 }
 

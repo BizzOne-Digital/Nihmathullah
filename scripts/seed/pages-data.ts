@@ -149,7 +149,7 @@ export function buildPages(): PageSeed[] {
         section("home-fleet", "fleetPreview", "Fleet Preview", 8, {
           eyebrow: "Fleet & Gallery",
           heading: "Comfortable Private Vehicles",
-          subheading: "Explore our fleet showcase and gallery. Vehicle details are confirmed for your specific trip.",
+          subheading: "Toyota Highlander Hybrid AWD and Toyota C-HR AWD Premium for airport, local, and long-distance travel.",
           primaryMedia: img(DEMO.homeFleet, "Luxury sedan and SUV fleet preview"),
           media: [img(DEMO.fleet2, "Vehicle interior leather seating detail")],
           primaryCta: cta("View Fleet", "/fleet"),
@@ -322,7 +322,7 @@ export function buildPages(): PageSeed[] {
       hero: {
         eyebrow: "Fleet",
         heading: "Comfortable Private Vehicles",
-        subheading: "Vehicle details are confirmed for your trip. Demo records below are illustrative until replaced with verified fleet information.",
+        subheading: "Toyota Highlander Hybrid AWD and Toyota C-HR AWD Premium — comfortable private transportation for your trip.",
         backgroundImage: img(DEMO.pageFleet, "Luxury fleet lineup"),
       },
       seo: {
@@ -332,7 +332,7 @@ export function buildPages(): PageSeed[] {
       },
       sections: [
         section("fleet-intro", "richText", "Fleet Introduction", 0, {
-          body: "Our fleet showcase highlights the types of comfortable private vehicles used for SierraLink transportation. Specific vehicle assignment is confirmed when your trip is approved.",
+          body: "SierraLink operates a Toyota fleet including the Highlander Hybrid AWD and C-HR AWD Premium. Specific vehicle assignment is confirmed when your booking request is approved.",
           primaryMedia: img(DEMO.fleet2, "Luxury sedan exterior detail"),
           theme: "charcoal",
         }),

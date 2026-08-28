@@ -6,6 +6,10 @@ export interface SendEmailResult {
   error?: string;
 }
 
+export interface SendEmailOptions {
+  replyTo?: string;
+}
+
 function getTransporter() {
   const host = process.env.SMTP_HOST;
   const port = Number(process.env.SMTP_PORT || 587);
@@ -21,13 +25,15 @@ function getTransporter() {
     port,
     secure: port === 465,
     auth: { user, pass },
+    requireTLS: port === 587,
   });
 }
 
 export async function sendEmail(
-  to: string,
+  to: string | string[],
   subject: string,
-  html: string
+  html: string,
+  options?: SendEmailOptions
 ): Promise<SendEmailResult> {
   if (!isSmtpEnabled()) {
     return {
@@ -38,8 +44,9 @@ export async function sendEmail(
 
   const transporter = getTransporter();
   const from = process.env.EMAIL_FROM;
+  const recipients = Array.isArray(to) ? to : [to];
 
-  if (!transporter || !from) {
+  if (!transporter || !from || recipients.length === 0) {
     return {
       success: false,
       error: "Email delivery is not configured",
@@ -49,7 +56,8 @@ export async function sendEmail(
   try {
     const info = await transporter.sendMail({
       from,
-      to,
+      to: recipients,
+      replyTo: options?.replyTo,
       subject,
       html,
     });

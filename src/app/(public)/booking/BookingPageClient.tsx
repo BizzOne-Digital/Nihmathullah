@@ -1,18 +1,19 @@
 "use client";
 
 import { useSearchParams } from "next/navigation";
-import { BookingForm } from "@/components/booking/BookingForm";
+import { BookingForm, type BookingVehicleOption } from "@/components/booking/BookingForm";
 import type { BookingFormInput } from "@/lib/validation/booking";
 
 interface BookingPageClientProps {
   confirmationText?: string;
+  vehicles?: BookingVehicleOption[];
 }
 
-export function BookingPageClient({ confirmationText }: BookingPageClientProps) {
+export function BookingPageClient({
+  confirmationText,
+  vehicles = [],
+}: BookingPageClientProps) {
   const searchParams = useSearchParams();
-
-  const mode: "booking" | "quote" =
-    searchParams.get("mode") === "booking" ? "booking" : "quote";
 
   const tripStructureParam = searchParams.get("tripStructure");
   const tripStructure: BookingFormInput["tripStructure"] =
@@ -23,7 +24,7 @@ export function BookingPageClient({ confirmationText }: BookingPageClientProps) 
         : "one-way";
 
   const initialValues: Partial<BookingFormInput> = {
-    mode,
+    mode: "booking",
     tripStructure,
     rideType:
       searchParams.get("rideType") ||
@@ -40,9 +41,9 @@ export function BookingPageClient({ confirmationText }: BookingPageClientProps) 
 
   return (
     <BookingForm
-      defaultMode={mode}
       initialValues={initialValues}
       confirmationText={confirmationText}
+      vehicles={vehicles}
     />
   );
 }

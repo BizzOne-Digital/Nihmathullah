@@ -84,7 +84,7 @@ async function seedSiteSettings(): Promise<void> {
           },
         ],
         bookingConfirmationText:
-          "Thank you for your request. A SierraLink representative will review your trip details and contact you to confirm availability and pricing.",
+          "Thank you for your booking request. This is not a confirmed reservation. A SierraLink representative will contact you by email or phone to confirm availability, provide pricing, and arrange payment.",
         introAnimationEnabled: true,
         analyticsConsentRequired: false,
         copyrightText: `© ${new Date().getFullYear()} SierraLink Executive Transportation LLC. All rights reserved.`,
@@ -774,40 +774,82 @@ async function seedVehicles(
 ): Promise<void> {
   const relatedServices = [
     serviceIds.get("airport-transportation"),
+    serviceIds.get("local-transportation"),
+    serviceIds.get("long-distance-transportation"),
     serviceIds.get("executive-transportation"),
     serviceIds.get("private-car-service"),
   ].filter(Boolean) as mongoose.Types.ObjectId[];
 
   const vehicles = [
     {
-      displayName: "Executive Sedan (Illustrative)",
-      category: "sedan" as const,
-      passengerCapacity: undefined,
-      luggageGuidance: "Confirm luggage fit during booking.",
-      amenities: undefined,
-      primaryImage: "/images/placeholders/vehicle-sedan-1.svg",
-      gallery: ["/images/placeholders/fleet-3.svg", "/images/placeholders/fleet-4.svg"],
+      displayName: "Toyota Highlander Hybrid AWD",
+      make: "Toyota",
+      model: "Highlander Hybrid AWD",
+      category: "suv" as const,
+      passengerCapacity: 7,
+      luggageGuidance:
+        "Comfortable seating for up to 7 passengers with room for multiple suitcases. Share luggage counts when booking.",
+      amenities: [
+        "Hybrid AWD",
+        "Spacious SUV",
+        "Third-row seating",
+        "Climate control",
+      ],
+      primaryImage: {
+        url: "/images/placeholders/vehicle-suv-1.svg",
+        alt: "Toyota Highlander Hybrid AWD",
+      },
+      gallery: [
+        {
+          url: "/images/placeholders/fleet-2.svg",
+          alt: "Toyota Highlander Hybrid AWD exterior",
+        },
+        {
+          url: "/images/placeholders/fleet-3.svg",
+          alt: "Toyota Highlander Hybrid AWD interior",
+        },
+      ],
       order: 1,
     },
     {
-      displayName: "Luxury SUV (Illustrative)",
+      displayName: "Toyota C-HR AWD Premium",
+      make: "Toyota",
+      model: "C-HR AWD Premium",
       category: "suv" as const,
-      luggageGuidance: "Confirm passenger and luggage counts during booking.",
-      primaryImage: "/images/placeholders/vehicle-suv-1.svg",
-      gallery: ["/images/placeholders/fleet-2.svg", "/images/placeholders/gallery-4.svg"],
+      passengerCapacity: 5,
+      luggageGuidance:
+        "Ideal for up to 5 passengers with moderate luggage. Confirm bag count when booking.",
+      amenities: [
+        "AWD Premium",
+        "Compact SUV",
+        "Fuel efficient",
+        "Premium interior",
+      ],
+      primaryImage: {
+        url: "/images/placeholders/fleet-4.svg",
+        alt: "Toyota C-HR AWD Premium",
+      },
+      gallery: [
+        {
+          url: "/images/placeholders/fleet-5.svg",
+          alt: "Toyota C-HR AWD Premium exterior",
+        },
+        {
+          url: "/images/placeholders/gallery-4.svg",
+          alt: "Toyota C-HR AWD Premium detail",
+        },
+      ],
       order: 2,
-    },
-    {
-      displayName: "Sprinter Van (Illustrative)",
-      category: "sprinter" as const,
-      luggageGuidance: "Ideal for larger groups — confirm details when booking.",
-      primaryImage: "/images/placeholders/vehicle-sprinter-1.svg",
-      gallery: ["/images/placeholders/fleet-1.svg", "/images/placeholders/fleet-5.svg"],
-      order: 3,
     },
   ];
 
-  log("Vehicles", `upserting ${vehicles.length} illustrative vehicles (unpublished)`);
+  const removedVehicleNames = [
+    "Executive Sedan (Illustrative)",
+    "Luxury SUV (Illustrative)",
+    "Sprinter Van (Illustrative)",
+  ];
+
+  log("Vehicles", `upserting ${vehicles.length} published fleet vehicles`);
 
   for (const vehicle of vehicles) {
     await Vehicle.findOneAndUpdate(
@@ -815,23 +857,30 @@ async function seedVehicles(
       {
         $set: {
           displayName: vehicle.displayName,
+          make: vehicle.make,
+          model: vehicle.model,
           category: vehicle.category,
           passengerCapacity: vehicle.passengerCapacity,
           luggageGuidance: vehicle.luggageGuidance,
           amenities: vehicle.amenities,
+          primaryImage: vehicle.primaryImage,
+          gallery: vehicle.gallery,
           relatedServices,
-          published: false,
+          published: true,
           order: vehicle.order,
-          isIllustrative: true,
-        },
-        $unset: {
-          primaryImage: "",
-          gallery: "",
+          isIllustrative: false,
         },
       },
       { upsert: true, new: true }
     );
     log("Vehicles", `  ✓ ${vehicle.displayName}`);
+  }
+
+  const removed = await Vehicle.deleteMany({
+    displayName: { $in: removedVehicleNames },
+  });
+  if (removed.deletedCount > 0) {
+    log("Vehicles", `  removed ${removed.deletedCount} legacy illustrative record(s)`);
   }
 }
 
@@ -871,7 +920,7 @@ async function main(): Promise<void> {
     console.log(`  Blog posts: ${BLOG_POSTS.length} published`);
     console.log("  Testimonials: none seeded (admin-approved only)");
     console.log(`  Pages: ${buildPages().length} with complete sections`);
-    console.log("  Vehicles: 3 unpublished illustrative records");
+    console.log("  Vehicles: 2 published (Toyota Highlander Hybrid AWD, Toyota C-HR AWD Premium)");
     console.log("\n  Branded SVG placeholders: public/images/placeholders/ (npm run generate:placeholders)");
     console.log("  Run: npm run seed\n");
   } finally {

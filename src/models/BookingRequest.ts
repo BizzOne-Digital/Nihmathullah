@@ -29,6 +29,7 @@ export interface IBookingTripDetails {
   flightType?: "arrival" | "departure";
   airline?: string;
   flightNumber?: string;
+  vehiclePreference?: string;
   passengerCount: number;
   luggageCount: number;
   childSeatRequest?: boolean;
@@ -92,6 +93,7 @@ const BookingTripDetailsSchema = new Schema<IBookingTripDetails>(
     flightType: { type: String, enum: ["arrival", "departure"] },
     airline: { type: String },
     flightNumber: { type: String },
+    vehiclePreference: { type: String },
     passengerCount: { type: Number, required: true, min: 1 },
     luggageCount: { type: Number, required: true, min: 0 },
     childSeatRequest: { type: Boolean },

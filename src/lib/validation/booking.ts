@@ -36,6 +36,7 @@ export const bookingFormSchema = z
     flightType: flightTypeField.optional(),
     airline: z.string().trim().max(120).optional().or(z.literal("")),
     flightNumber: z.string().trim().max(20).optional().or(z.literal("")),
+    vehiclePreference: z.string().trim().max(200).optional().or(z.literal("")),
     passengerCount: z.coerce
       .number()
       .int("Passenger count must be a whole number")

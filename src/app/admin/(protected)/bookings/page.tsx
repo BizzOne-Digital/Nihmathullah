@@ -157,7 +157,7 @@ export default function BookingsPage() {
               {
                 key: "mode",
                 header: "Type",
-                render: (r) => (r.mode === "quote" ? "Quote" : "Booking"),
+                render: () => "Request",
               },
               {
                 key: "createdAt",

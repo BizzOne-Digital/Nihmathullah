@@ -30,8 +30,7 @@ export function QuickQuoteSection({ section }: QuickQuoteSectionProps) {
         <RevealOnScroll delay={0.1}>
           <div className="mx-auto max-w-5xl">
             <BookingWidget
-              mode="quote"
-              submitLabel={section.primaryCta?.label || "Get a Quote"}
+              submitLabel={section.primaryCta?.label || "Request a Ride"}
             />
           </div>
         </RevealOnScroll>

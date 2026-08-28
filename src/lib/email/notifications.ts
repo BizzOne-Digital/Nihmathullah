@@ -1,4 +1,15 @@
 import { sendEmail } from "@/lib/email/send";
+import {
+  formatReplyTo,
+  getBookingNotificationRecipients,
+} from "@/lib/email/recipients";
+import {
+  buildBookingConfirmationEmail,
+  buildBookingRequestAdminEmail,
+  type BookingRequestDetails,
+} from "@/lib/email/templates";
+import { getSiteSettings } from "@/lib/repositories/site-settings";
+import { toSiteSettingsData } from "@/lib/site-settings";
 
 function adminRecipient(): string | null {
   const email = process.env.ADMIN_EMAIL?.trim();
@@ -44,33 +55,44 @@ export async function notifyAdminNewInquiry(input: {
   );
 }
 
-export async function notifyAdminNewBooking(input: {
-  reference: string;
-  mode: string;
-  contactName: string;
-  contactEmail: string;
-  contactPhone: string;
-  rideType: string;
-  pickupAddress: string;
-  destinationAddress: string;
-  pickupDate: string;
-  pickupTime: string;
-}): Promise<void> {
-  const to = adminRecipient();
+export async function notifyAdminNewBooking(
+  input: BookingRequestDetails
+): Promise<void> {
+  const recipients = getBookingNotificationRecipients();
+  if (!recipients.length) return;
+
+  const { subject, html } = buildBookingRequestAdminEmail({
+    ...input,
+    adminUrl: adminUrl("/admin/bookings"),
+  });
+
+  const replyTo = formatReplyTo(input.contactName, input.contactEmail);
+
+  await sendEmail(recipients, subject, html, { replyTo });
+}
+
+export async function notifyCustomerBookingConfirmation(
+  input: BookingRequestDetails
+): Promise<void> {
+  if (!input.contactName || !input.reference) return;
+
+  const to = input.contactEmail?.trim();
   if (!to) return;
 
-  const lines = [
-    `<p><strong>New ${input.mode} request</strong> — ${input.reference}</p>`,
-    `<p><strong>Contact:</strong> ${input.contactName} · ${input.contactEmail} · ${input.contactPhone}</p>`,
-    `<p><strong>Ride type:</strong> ${input.rideType}</p>`,
-    `<p><strong>Pickup:</strong> ${input.pickupAddress} on ${input.pickupDate} at ${input.pickupTime}</p>`,
-    `<p><strong>Destination:</strong> ${input.destinationAddress}</p>`,
-    `<p><a href="${adminUrl("/admin/bookings")}">View in admin</a></p>`,
-  ];
+  let settings;
+  try {
+    const siteSettings = await getSiteSettings();
+    if (siteSettings) {
+      settings = toSiteSettingsData(siteSettings);
+    }
+  } catch {
+    // Use template defaults when settings are unavailable
+  }
 
-  await sendEmail(
-    to,
-    `New SierraLink ${input.mode}: ${input.reference}`,
-    lines.join("\n")
-  );
+  const { subject, html } = buildBookingConfirmationEmail({
+    ...input,
+    settings,
+  });
+
+  await sendEmail(to, subject, html);
 }

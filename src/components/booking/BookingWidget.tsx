@@ -20,7 +20,6 @@ export interface BookingWidgetValues {
 interface BookingWidgetProps {
   className?: string;
   submitLabel?: string;
-  mode?: "booking" | "quote";
   compact?: boolean;
   initialValues?: Partial<BookingWidgetValues>;
 }
@@ -30,8 +29,7 @@ const inputClass =
 
 export function BookingWidget({
   className,
-  submitLabel = "Get a Quote",
-  mode = "quote",
+  submitLabel = "Request a Ride",
   compact = false,
   initialValues,
 }: BookingWidgetProps) {
@@ -45,7 +43,7 @@ export function BookingWidget({
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
-    const params = new URLSearchParams({ mode, tripStructure: tripMode });
+    const params = new URLSearchParams({ tripStructure: tripMode });
     if (pickup) params.set("pickup", pickup);
     if (tripMode === "one-way" && destination) params.set("destination", destination);
     if (tripMode === "hourly") {
