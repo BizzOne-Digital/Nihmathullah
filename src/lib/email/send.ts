@@ -1,4 +1,5 @@
 import nodemailer from "nodemailer";
+import { getSmtpConfig } from "@/lib/email/smtp-config";
 import { isSmtpEnabled } from "@/lib/utils";
 
 export interface SendEmailResult {
@@ -11,14 +12,10 @@ export interface SendEmailOptions {
 }
 
 function getTransporter() {
-  const host = process.env.SMTP_HOST;
-  const port = Number(process.env.SMTP_PORT || 587);
-  const user = process.env.SMTP_USER;
-  const pass = process.env.SMTP_PASSWORD;
+  const config = getSmtpConfig();
+  if (!config) return null;
 
-  if (!host || !user || !pass) {
-    return null;
-  }
+  const { host, port, user, pass } = config;
 
   return nodemailer.createTransport({
     host,
@@ -43,7 +40,8 @@ export async function sendEmail(
   }
 
   const transporter = getTransporter();
-  const from = process.env.EMAIL_FROM;
+  const config = getSmtpConfig();
+  const from = config?.from;
   const recipients = Array.isArray(to) ? to : [to];
 
   if (!transporter || !from || recipients.length === 0) {

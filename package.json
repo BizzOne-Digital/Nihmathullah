@@ -9,6 +9,7 @@
     "lint": "next lint",
     "type-check": "tsc --noEmit",
     "seed": "tsx scripts/seed.ts",
+    "test:smtp": "tsx scripts/test-smtp.ts",
     "generate:demo-images": "node scripts/generate-demo-images.mjs",
     "generate:placeholders": "node scripts/generate-placeholders.mjs"
   },
