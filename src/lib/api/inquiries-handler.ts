@@ -62,29 +62,30 @@ export async function handleInquirySubmission(request: Request): Promise<Respons
           ? "Booking question"
           : "Inquiry";
 
-    void notifyAdminNewInquiry({
-      name: data.name,
-      email: data.email,
-      phone: data.phone,
-      inquiryType: data.inquiryType,
-      pickup: data.pickup,
-      destination: data.destination,
-      preferredDateTime: data.preferredDateTime,
-      message: data.message,
-      formLabel,
-    });
-
-    void notifyCustomerInquiryConfirmation({
-      name: data.name,
-      email: data.email,
-      phone: data.phone,
-      inquiryType: data.inquiryType,
-      pickup: data.pickup,
-      destination: data.destination,
-      preferredDateTime: data.preferredDateTime,
-      message: data.message,
-      formLabel,
-    });
+    await Promise.allSettled([
+      notifyAdminNewInquiry({
+        name: data.name,
+        email: data.email,
+        phone: data.phone,
+        inquiryType: data.inquiryType,
+        pickup: data.pickup,
+        destination: data.destination,
+        preferredDateTime: data.preferredDateTime,
+        message: data.message,
+        formLabel,
+      }),
+      notifyCustomerInquiryConfirmation({
+        name: data.name,
+        email: data.email,
+        phone: data.phone,
+        inquiryType: data.inquiryType,
+        pickup: data.pickup,
+        destination: data.destination,
+        preferredDateTime: data.preferredDateTime,
+        message: data.message,
+        formLabel,
+      }),
+    ]);
 
     return jsonResponse({
       success: true,

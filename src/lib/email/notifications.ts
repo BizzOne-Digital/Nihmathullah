@@ -50,7 +50,10 @@ export async function notifyAdminNewInquiry(
 
   const replyTo = formatReplyTo(input.name, input.email);
 
-  await sendEmail(recipients, subject, html, { replyTo });
+  const result = await sendEmail(recipients, subject, html, { replyTo });
+  if (!result.success) {
+    console.error("[email] Admin inquiry notification failed:", result.error);
+  }
 }
 
 export async function notifyCustomerInquiryConfirmation(
@@ -80,7 +83,10 @@ export async function notifyCustomerInquiryConfirmation(
 
   const replyTo = getBusinessReplyEmail(settings?.primaryEmail);
 
-  await sendEmail(to, subject, html, { replyTo });
+  const result = await sendEmail(to, subject, html, { replyTo });
+  if (!result.success) {
+    console.error("[email] Customer inquiry confirmation failed:", result.error);
+  }
 }
 
 export async function notifyCustomerContactConfirmation(input: {
@@ -102,7 +108,10 @@ export async function notifyCustomerContactConfirmation(input: {
 
   const replyTo = getBusinessReplyEmail(settings?.primaryEmail);
 
-  await sendEmail(to, subject, html, { replyTo });
+  const result = await sendEmail(to, subject, html, { replyTo });
+  if (!result.success) {
+    console.error("[email] Customer contact confirmation failed:", result.error);
+  }
 }
 
 export async function notifyAdminNewBooking(
@@ -118,7 +127,10 @@ export async function notifyAdminNewBooking(
 
   const replyTo = formatReplyTo(input.contactName, input.contactEmail);
 
-  await sendEmail(recipients, subject, html, { replyTo });
+  const result = await sendEmail(recipients, subject, html, { replyTo });
+  if (!result.success) {
+    console.error("[email] Admin booking notification failed:", result.error);
+  }
 }
 
 export async function notifyCustomerBookingConfirmation(
@@ -138,5 +150,8 @@ export async function notifyCustomerBookingConfirmation(
 
   const replyTo = getBusinessReplyEmail(settings?.primaryEmail);
 
-  await sendEmail(to, subject, html, { replyTo });
+  const result = await sendEmail(to, subject, html, { replyTo });
+  if (!result.success) {
+    console.error("[email] Customer booking confirmation failed:", result.error);
+  }
 }

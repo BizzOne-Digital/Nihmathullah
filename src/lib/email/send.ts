@@ -34,7 +34,13 @@ export async function sendEmail(
   html: string,
   options?: SendEmailOptions
 ): Promise<SendEmailResult> {
+  const recipients = Array.isArray(to) ? to : [to];
+
   if (!isSmtpEnabled()) {
+    console.error("[email] SMTP not configured — email not sent", {
+      to: recipients,
+      subject,
+    });
     return {
       success: false,
       error: "Email delivery is not configured",
@@ -44,10 +50,15 @@ export async function sendEmail(
   const transporter = getTransporter();
   const config = getSmtpConfig();
   const from = config?.from;
-  const recipients = Array.isArray(to) ? to : [to];
   const plainText = options?.text ?? htmlToPlainText(html);
 
   if (!transporter || !from || recipients.length === 0) {
+    console.error("[email] SMTP transport unavailable — email not sent", {
+      to: recipients,
+      subject,
+      hasTransporter: Boolean(transporter),
+      hasFrom: Boolean(from),
+    });
     return {
       success: false,
       error: "Email delivery is not configured",
@@ -71,6 +82,7 @@ export async function sendEmail(
     });
 
     if (!info.messageId) {
+      console.error("[email] No message ID returned", { to: recipients, subject });
       return {
         success: false,
         error: "Email was accepted by the server but no message ID was returned",
@@ -82,6 +94,11 @@ export async function sendEmail(
     const message =
       error instanceof Error ? error.message : "Unknown email delivery error";
 
+    console.error("[email] Send failed", {
+      to: recipients,
+      subject,
+      error: message,
+    });
     return {
       success: false,
       error: message,

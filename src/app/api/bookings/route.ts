@@ -92,8 +92,10 @@ export async function POST(request: Request) {
       data
     );
 
-    void notifyAdminNewBooking(requestDetails);
-    void notifyCustomerBookingConfirmation(requestDetails);
+    await Promise.allSettled([
+      notifyAdminNewBooking(requestDetails),
+      notifyCustomerBookingConfirmation(requestDetails),
+    ]);
 
     return jsonResponse({
       success: true,

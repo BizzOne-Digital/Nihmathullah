@@ -49,20 +49,21 @@ export async function POST(request: Request) {
       consent: data.consent,
     });
 
-    void notifyAdminNewInquiry({
-      name: data.name,
-      email: data.email,
-      phone: data.phone,
-      inquiryType: "general",
-      message: data.message,
-      formLabel: "Contact form message",
-    });
-
-    void notifyCustomerContactConfirmation({
-      name: data.name,
-      email: data.email,
-      message: data.message,
-    });
+    await Promise.allSettled([
+      notifyAdminNewInquiry({
+        name: data.name,
+        email: data.email,
+        phone: data.phone,
+        inquiryType: "general",
+        message: data.message,
+        formLabel: "Contact form message",
+      }),
+      notifyCustomerContactConfirmation({
+        name: data.name,
+        email: data.email,
+        message: data.message,
+      }),
+    ]);
 
     return jsonResponse({
       success: true,
