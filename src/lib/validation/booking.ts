@@ -33,7 +33,7 @@ export const bookingFormSchema = z
     returnTime: z.string().trim().max(20).optional().or(z.literal("")),
     timezone: z.string().trim().min(1, "Timezone is required").max(80),
     airportCode: z.string().trim().max(10).optional().or(z.literal("")),
-    flightType: flightTypeField.optional(),
+    flightType: flightTypeField.optional().or(z.literal("")),
     airline: z.string().trim().max(120).optional().or(z.literal("")),
     flightNumber: z.string().trim().max(20).optional().or(z.literal("")),
     vehiclePreference: z.string().trim().max(200).optional().or(z.literal("")),

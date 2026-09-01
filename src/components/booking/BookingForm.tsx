@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, type FieldErrors } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { bookingFormSchema, type BookingFormInput } from "@/lib/validation/booking";
 import { Button } from "@/components/ui/Button";
@@ -78,6 +78,7 @@ export function BookingForm({
 }: BookingFormProps) {
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [errorMessage, setErrorMessage] = useState("");
+  const [validationMessage, setValidationMessage] = useState("");
   const [reference, setReference] = useState("");
 
   const form = useForm<BookingFormInput>({
@@ -88,7 +89,7 @@ export function BookingForm({
       ...initialValues,
       mode: "booking",
     },
-    mode: "onBlur",
+    mode: "onSubmit",
   });
 
   const {
@@ -135,9 +136,24 @@ export function BookingForm({
   const inputClass =
     "w-full rounded-sm border border-antique-gold/20 bg-charcoal px-4 py-3 text-sm text-ivory placeholder:text-muted-silver focus:outline-none focus:ring-2 focus:ring-signature-gold/50";
 
+  const onInvalid = (fieldErrors: FieldErrors<BookingFormInput>) => {
+    setValidationMessage(
+      "Please complete the required fields below before submitting your request."
+    );
+    const firstField = Object.keys(fieldErrors)[0];
+    if (firstField) {
+      const el = document.querySelector<HTMLElement>(
+        `[name="${firstField}"], #booking-${firstField}`
+      );
+      el?.scrollIntoView({ behavior: "smooth", block: "center" });
+      el?.focus({ preventScroll: true });
+    }
+  };
+
   const onSubmit = async (data: BookingFormInput) => {
     setStatus("loading");
     setErrorMessage("");
+    setValidationMessage("");
 
     try {
       const res = await fetch("/api/bookings", {
@@ -194,7 +210,11 @@ export function BookingForm({
   const showFlightFields = rideType === "airport";
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-8" noValidate>
+    <form
+      onSubmit={handleSubmit(onSubmit, onInvalid)}
+      className="space-y-8"
+      noValidate
+    >
       <input
         type="text"
         {...register("honeypot")}
@@ -203,13 +223,20 @@ export function BookingForm({
         autoComplete="off"
         aria-hidden="true"
       />
-      <input type="hidden" {...register("mode")} value="booking" />
-
       <div className="rounded-sm border border-antique-gold/20 bg-obsidian/30 px-4 py-3 text-sm text-muted-silver">
         Submit a <strong className="text-ivory">booking request</strong> — no account
         required. This is not an instant confirmation or online payment. We will
         contact you to confirm availability, price, and payment details.
       </div>
+
+      {validationMessage && (
+        <div
+          role="alert"
+          className="rounded-sm border border-red-400/40 bg-red-950/30 px-4 py-3 text-sm text-red-300"
+        >
+          {validationMessage}
+        </div>
+      )}
 
       <FormSection title="Trip details">
         <div className="mb-4 flex rounded-sm border border-antique-gold/20 bg-obsidian/40 p-1">
@@ -364,6 +391,7 @@ export function BookingForm({
           type="checkbox"
           {...register("consent")}
           className="mt-1 h-4 w-4 rounded border-antique-gold/30"
+          aria-invalid={errors.consent ? true : undefined}
         />
         <label htmlFor="booking-consent" className="text-sm text-muted-silver">
           I agree to be contacted about this booking request and understand my
@@ -378,7 +406,6 @@ export function BookingForm({
         type="submit"
         variant="gold"
         size="lg"
-        magnetic
         disabled={status === "loading"}
         className="w-full sm:w-auto"
       >

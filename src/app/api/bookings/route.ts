@@ -62,7 +62,7 @@ export async function POST(request: Request) {
         returnTime: data.returnTime || undefined,
         timezone: data.timezone,
         airportCode: data.airportCode || undefined,
-        flightType: data.flightType,
+        flightType: data.flightType || undefined,
         airline: data.airline || undefined,
         flightNumber: data.flightNumber || undefined,
         vehiclePreference: data.vehiclePreference || undefined,
