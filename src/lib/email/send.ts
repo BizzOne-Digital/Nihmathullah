@@ -1,4 +1,5 @@
 import nodemailer from "nodemailer";
+import { htmlToPlainText } from "@/lib/email/html-to-text";
 import { getSmtpConfig } from "@/lib/email/smtp-config";
 import { isSmtpEnabled } from "@/lib/utils";
 
@@ -9,6 +10,7 @@ export interface SendEmailResult {
 
 export interface SendEmailOptions {
   replyTo?: string;
+  text?: string;
 }
 
 function getTransporter() {
@@ -43,6 +45,7 @@ export async function sendEmail(
   const config = getSmtpConfig();
   const from = config?.from;
   const recipients = Array.isArray(to) ? to : [to];
+  const plainText = options?.text ?? htmlToPlainText(html);
 
   if (!transporter || !from || recipients.length === 0) {
     return {
@@ -57,7 +60,14 @@ export async function sendEmail(
       to: recipients,
       replyTo: options?.replyTo,
       subject,
+      text: plainText,
       html,
+      priority: "normal",
+      headers: {
+        "X-Priority": "3",
+        "X-MSMail-Priority": "Normal",
+        Importance: "normal",
+      },
     });
 
     if (!info.messageId) {

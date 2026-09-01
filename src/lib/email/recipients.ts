@@ -16,14 +16,26 @@ export function uniqueEmails(addresses: Array<string | undefined | null>): strin
 }
 
 /**
- * Booking request alerts go to the business inbox plus the dedicated Gmail
- * SMTP account as a backup (when they differ).
+ * Admin alerts go to the business inbox plus the dedicated Gmail SMTP account
+ * as a backup (when they differ).
  */
-export function getBookingNotificationRecipients(): string[] {
+export function getAdminNotificationRecipients(): string[] {
   return uniqueEmails([
     process.env.ADMIN_EMAIL,
     process.env.SMTP_USER,
   ]);
+}
+
+/** @deprecated Use getAdminNotificationRecipients */
+export const getBookingNotificationRecipients = getAdminNotificationRecipients;
+
+export function getBusinessReplyEmail(preferred?: string): string {
+  const candidates = uniqueEmails([
+    preferred,
+    process.env.ADMIN_EMAIL,
+    process.env.SMTP_USER,
+  ]);
+  return candidates[0] ?? "";
 }
 
 export function formatReplyTo(name: string, email: string): string {

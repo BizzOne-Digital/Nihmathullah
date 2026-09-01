@@ -125,7 +125,9 @@ export function ContactForm({ className }: ContactFormProps) {
       {errors.consent && <p className="text-sm text-red-400">{errors.consent.message}</p>}
 
       {status === "success" && (
-        <p className="text-sm text-signature-gold">Thank you — your message has been sent.</p>
+        <p className="text-sm text-signature-gold">
+          Thank you — your message has been sent. A confirmation email is on its way to your inbox.
+        </p>
       )}
       {status === "error" && <p className="text-sm text-red-400">{errorMessage}</p>}
 

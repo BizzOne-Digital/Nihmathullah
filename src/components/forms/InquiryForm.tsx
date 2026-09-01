@@ -164,7 +164,9 @@ export function InquiryForm({ className, defaultInquiryType = "general" }: Inqui
       {errors.consent && <p className="text-sm text-red-400">{errors.consent.message}</p>}
 
       {status === "success" && (
-        <p className="text-sm text-signature-gold">Thank you — we received your inquiry.</p>
+        <p className="text-sm text-signature-gold">
+          Thank you — we received your inquiry. Check your email for a confirmation message.
+        </p>
       )}
       {status === "error" && <p className="text-sm text-red-400">{errorMessage}</p>}
 

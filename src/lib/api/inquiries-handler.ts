@@ -1,6 +1,9 @@
 import { inquiryFormSchema } from "@/lib/validation/booking";
 import { createInquiry } from "@/lib/repositories/inquiries";
-import { notifyAdminNewInquiry } from "@/lib/email/notifications";
+import {
+  notifyAdminNewInquiry,
+  notifyCustomerInquiryConfirmation,
+} from "@/lib/email/notifications";
 import { checkRateLimit, rateLimitResponse } from "@/lib/rate-limit";
 import { getClientIp } from "@/lib/api/request";
 import {
@@ -52,6 +55,13 @@ export async function handleInquirySubmission(request: Request): Promise<Respons
       consent: data.consent,
     });
 
+    const formLabel =
+      data.inquiryType === "quote"
+        ? "Quote request"
+        : data.inquiryType === "booking"
+          ? "Booking question"
+          : "Inquiry";
+
     void notifyAdminNewInquiry({
       name: data.name,
       email: data.email,
@@ -61,6 +71,19 @@ export async function handleInquirySubmission(request: Request): Promise<Respons
       destination: data.destination,
       preferredDateTime: data.preferredDateTime,
       message: data.message,
+      formLabel,
+    });
+
+    void notifyCustomerInquiryConfirmation({
+      name: data.name,
+      email: data.email,
+      phone: data.phone,
+      inquiryType: data.inquiryType,
+      pickup: data.pickup,
+      destination: data.destination,
+      preferredDateTime: data.preferredDateTime,
+      message: data.message,
+      formLabel,
     });
 
     return jsonResponse({

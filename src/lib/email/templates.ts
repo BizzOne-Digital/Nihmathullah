@@ -214,11 +214,105 @@ export function buildBookingRequestAdminEmail(
 
   const body = `
     <p style="margin:0 0 16px;"><strong>New booking request</strong> — ${escapeHtml(input.reference)}</p>
-    <p style="margin:0 0 20px;color:#5c5348;">Review availability, send pricing, and follow up by email or phone.</p>
+    <p style="margin:0 0 20px;color:#5c5348;">Review availability, send pricing, and follow up by email or phone. <strong>Reply to this email to reach the customer directly.</strong></p>
     <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin:0 0 24px;">
       ${detailsTableHtml(buildDetailRows(input))}
     </table>
     <p style="margin:0;"><a href="${escapeHtml(input.adminUrl)}" style="color:#8b6914;">View in admin</a></p>
+  `;
+
+  return {
+    subject,
+    html: emailLayout(body, settings),
+  };
+}
+
+export interface InquiryEmailDetails {
+  name: string;
+  email: string;
+  phone?: string;
+  inquiryType: string;
+  message?: string;
+  pickup?: string;
+  destination?: string;
+  preferredDateTime?: string;
+}
+
+const INQUIRY_TYPE_LABELS: Record<string, string> = {
+  general: "General inquiry",
+  quote: "Quote request",
+  booking: "Booking question",
+  corporate: "Corporate / executive",
+  feedback: "Feedback",
+  other: "Other",
+};
+
+function formatInquiryType(value: string): string {
+  return INQUIRY_TYPE_LABELS[value] || value;
+}
+
+function buildInquiryRows(input: InquiryEmailDetails): Array<[string, string]> {
+  const rows: Array<[string, string]> = [
+    ["Name", input.name],
+    ["Email", input.email],
+  ];
+
+  if (input.phone?.trim()) rows.push(["Phone", input.phone.trim()]);
+  rows.push(["Type", formatInquiryType(input.inquiryType)]);
+  if (input.pickup?.trim()) rows.push(["Pickup", input.pickup.trim()]);
+  if (input.destination?.trim()) rows.push(["Destination", input.destination.trim()]);
+  if (input.preferredDateTime?.trim()) {
+    rows.push(["Preferred date/time", input.preferredDateTime.trim()]);
+  }
+  if (input.message?.trim()) rows.push(["Message", input.message.trim()]);
+
+  return rows;
+}
+
+export function buildInquiryAdminEmail(
+  input: InquiryEmailDetails & { adminUrl: string; formLabel: string }
+): { subject: string; html: string } {
+  const settings = DEFAULT_SITE_SETTINGS;
+  const subject = `New ${input.formLabel.toLowerCase()} from ${input.name}`;
+
+  const body = `
+    <p style="margin:0 0 16px;"><strong>New ${escapeHtml(input.formLabel.toLowerCase())}</strong> from ${escapeHtml(input.name)}</p>
+    <p style="margin:0 0 20px;color:#5c5348;"><strong>Reply to this email to reach the customer directly.</strong></p>
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin:0 0 24px;">
+      ${detailsTableHtml(buildInquiryRows(input))}
+    </table>
+    <p style="margin:0;"><a href="${escapeHtml(input.adminUrl)}" style="color:#8b6914;">View in admin</a></p>
+  `;
+
+  return {
+    subject,
+    html: emailLayout(body, settings),
+  };
+}
+
+export function buildCustomerFormConfirmationEmail(input: {
+  name: string;
+  formLabel: string;
+  summary?: string;
+  settings?: Partial<SiteSettingsData>;
+}): { subject: string; html: string } {
+  const settings = {
+    ...DEFAULT_SITE_SETTINGS,
+    ...input.settings,
+  };
+
+  const subject = `We received your ${input.formLabel.toLowerCase()} — SierraLink`;
+
+  const body = `
+    <p style="margin:0 0 16px;">Dear ${escapeHtml(input.name)},</p>
+    <p style="margin:0 0 12px;">Thank you for contacting <strong>SierraLink Executive Transportation</strong>.</p>
+    <p style="margin:0 0 20px;color:#5c5348;">We received your ${escapeHtml(input.formLabel.toLowerCase())} and a team member will respond by email or phone as soon as possible.</p>
+    ${
+      input.summary
+        ? `<p style="margin:0;padding:16px;background:#faf7f0;border-left:3px solid #b8860b;font-size:14px;line-height:1.6;">${escapeHtml(input.summary)}</p>`
+        : ""
+    }
+    <p style="margin:20px 0 0;font-size:14px;color:#5c5348;">You can reply to this email if you need to add more details.</p>
   `;
 
   return {
